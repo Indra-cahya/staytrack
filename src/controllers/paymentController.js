@@ -106,17 +106,24 @@ class PaymentController {
                     }
                 }
             },
-            {
-                $project: {
-                    _id: 1,
-                    tenantName: { $arrayElemAt: ["$tenant.name", 0] },
-                    roomNumber: { $arrayElemAt: ["$room.roomNumber", 0] },
-                    amount: 1,
-                    method: "$finalMethod",
-                    status: 1,
-                    createdAt: 1
-                }
+           // Di dalam Payment.aggregate lo, bagian $project:
+           {
+            $project: {
+                _id: 1,
+                tenantName: { $arrayElemAt: ["$tenant.name", 0] },
+                roomNumber: { $arrayElemAt: ["$room.roomNumber", 0] },
+                amount: 1,
+                status: 1,
+                // INI KUNCINYA: Ambil dari payment, kalo gak ada ambil dari profil penyewa
+                method: { 
+                    $ifNull: [
+                        "$paymentMethod", 
+                        { $arrayElemAt: ["$tenant.preferredPaymentMethod", 0] }
+                    ] 
+                },
+                createdAt: 1
             }
+        }
         ]);
 
         // Mapping Data untuk Frontend

@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
     <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="dashboard-page">
 
@@ -16,13 +17,24 @@
                 <i class="fas fa-house-chimney-window"></i>
                 <span>StayTrack</span>
             </div>
-            <ul class="nav-menu">
+            
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <ul class="nav-menu" id="navMenu">
                 <li><a href="dashboard.html"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
-                <li><a href="rooms.html" class="active"><i class="fas fa-door-open"></i> Kamar</a></li>
+                <li><a href="rooms.html"><i class="fas fa-door-open"></i> Kamar</a></li>
                 <li><a href="tenants.html"><i class="fas fa-users"></i> Penyewa</a></li>
                 <li><a href="reports.html"><i class="fas fa-file-invoice-dollar"></i> Laporan</a></li>
+                <li class="mobile-only">
+                    <button class="btn-logout-mobile" onclick="document.getElementById('btnLogout').click()">
+                        <i class="fas fa-right-from-bracket"></i> Keluar
+                    </button>
+                </li>
             </ul>
-            <div class="nav-user">
+
+            <div class="nav-user desktop-only">
                 <button id="btnLogout" class="btn-logout-nav">
                     <i class="fas fa-right-from-bracket"></i> Keluar
                 </button>
@@ -95,6 +107,45 @@
                 </div>
         </div>
     </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Ambil nama file dari URL saat ini (misal: 'rooms.html')
+            const currentPage = window.location.pathname.split("/").pop();
+
+            // 2. Cari semua link di dalam navigasi
+            const navLinks = document.querySelectorAll('.nav-menu li a');
+
+            navLinks.forEach(link => {
+                // 3. Ambil nilai href dari link (misal: 'rooms.html')
+                const linkPage = link.getAttribute('href');
+
+                // 4. Jika nama file cocok, tambahkan class 'active'
+                if (currentPage === linkPage) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+            const menuBtn = document.getElementById('mobileMenuBtn');
+            const navMenu = document.getElementById('navMenu');
+
+            if (menuBtn && navMenu) {
+                menuBtn.addEventListener('click', () => {
+                    navMenu.classList.toggle('active');
+                    const icon = menuBtn.querySelector('i');
+                    
+                    if (navMenu.classList.contains('active')) {
+                        // Saat menu terbuka, ganti jadi ikon X
+                        icon.className = 'fas fa-xmark';
+                    } else {
+                        // Saat menu tertutup, kembali ke garis tiga
+                        icon.className = 'fas fa-bars';
+                    }
+                });
+            }
+        });
+    </script>
     
     <script type="module" src="js/api.js"></script>
     <script type="module" src="js/auth.js"></script>

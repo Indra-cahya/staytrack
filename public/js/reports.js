@@ -77,7 +77,6 @@ async function loadReport() {
         // Update Ringkasan Statis
         document.getElementById('totalIncome').textContent = formatRupiah(data.totalIncome || 0);
         document.getElementById('successfulPayments').textContent = data.successfulPayments || 0;
-        document.getElementById('pendingPayments').textContent = data.pendingPayments || 0;
 
         // Render Tabel
         renderPaymentTable(data.payments || []);

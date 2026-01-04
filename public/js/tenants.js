@@ -94,14 +94,14 @@ async function saveTenant() {
     const paymentMethod = document.getElementById('paymentMethod').value;
 
     if (!name || !phone || !idNumber || !paymentMethod) {
-        return alert('Harap isi Nama, HP, KTP, dan Metode Pembayaran!');
+        return alert('Field utama wajib diisi!');
     }
 
     const payload = { name, phone, idNumber, paymentMethod };
 
     if (!currentEditTenantId) {
         const roomId = document.getElementById('roomId').value;
-        if (!roomId) return alert('Silakan pilih kamar!');
+        if (!roomId) return alert('Pilih kamar dulu Bos!');
         payload.roomId = roomId;
     }
 
@@ -110,13 +110,30 @@ async function saveTenant() {
         const method = currentEditTenantId ? 'PUT' : 'POST';
 
         await apiRequest(url, method, payload);
-        alert(`Berhasil ${currentEditTenantId ? 'memperbarui' : 'menambahkan'} penyewa!`);
-        
-        hideAddTenantForm();
+
+        // --- FIX: TUTUP MODAL DULU ---
+        hideAddTenantForm(); 
+
+        // --- BARU MUNCULIN NOTIF CENTANG ---
+        await Swal.fire({
+            title: 'Berhasil!',
+            text: `Data penyewa berhasil ${currentEditTenantId ? 'diperbarui' : 'ditambahkan'}`,
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false,
+            timerProgressBar: true
+        });
+
         loadTenants();
         loadRoomsForSelect();
+
     } catch (error) {
-        alert('Gagal menyimpan: ' + error.message);
+        Swal.fire({
+            title: 'Gagal!',
+            text: error.message || 'Terjadi kesalahan saat menyimpan',
+            icon: 'error',
+            confirmButtonColor: '#4f46e5'
+        });
     }
 }
 
@@ -215,11 +232,45 @@ function setupSidebarNavigation() {
 }
 
 async function checkoutTenant(id) {
-    if (!confirm('Yakin ingin checkout penyewa ini?')) return;
-    try {
-        await apiRequest(`/api/admin/tenants/checkout/${id}`, 'PUT');
-        loadTenants();
-        loadRoomsForSelect();
-        alert('Berhasil checkout!');
-    } catch (error) { alert(error.message); }
+    // 1. Munculin Pop-up Konfirmasi
+    const result = await Swal.fire({
+        title: 'Konfirmasi Checkout',
+        text: "Penyewa akan dikeluarkan dan status kamar akan kembali tersedia.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#4f46e5', // Warna ungu StayTrack
+        cancelButtonColor: '#f87171', // Warna merah
+        confirmButtonText: 'Ya, Checkout!',
+        cancelButtonText: 'Batal',
+        reverseButtons: true
+    });
+
+    // 2. Kalau User Klik "Ya"
+    if (result.isConfirmed) {
+        try {
+            await apiRequest(`/api/admin/tenants/checkout/${id}`, 'PUT');
+
+            // Notifikasi Sukses
+            await Swal.fire({
+                title: 'Berhasil!',
+                text: 'Penyewa telah berhasil di-checkout.',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false,
+                timerProgressBar: true
+            });
+
+            // Refresh data biar list penyewa & statistik diupdate
+            loadTenants();
+            if (typeof loadRoomsForSelect === 'function') loadRoomsForSelect();
+
+        } catch (error) {
+            Swal.fire({
+                title: 'Gagal!',
+                text: error.message || 'Gagal melakukan checkout',
+                icon: 'error',
+                confirmButtonColor: '#4f46e5'
+            });
+        }
+    }
 }

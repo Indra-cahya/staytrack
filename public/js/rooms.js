@@ -69,21 +69,39 @@ async function saveRoom() {
     const data = { roomNumber, price, type, capacity, facilities };
 
     try {
-        if (currentEditingRoomId) {
-            // Update
-            await apiRequest(`/api/admin/rooms/${currentEditingRoomId}`, 'PUT', data);
-            alert('Kamar berhasil diperbarui!');
-        } else {
-            // Create
-            await apiRequest('/api/admin/rooms/create', 'POST', data);
-            alert('Kamar berhasil ditambahkan!');
-        }
+    let message = "";
+    if (currentEditingRoomId) {
+        // Mode UPDATE
+        await apiRequest(`/api/admin/rooms/${currentEditingRoomId}`, 'PUT', data);
+        message = 'Kamar berhasil diperbarui!';
+    } else {
+        // Mode CREATE
+        await apiRequest('/api/admin/rooms/create', 'POST', data);
+        message = 'Kamar berhasil ditambahkan!';
+    }
+    hideAddRoomForm(); // Pake fungsi tutup lo yang lama
+    // GANTI ALERT JADUL PAKE INI:
+await Swal.fire({
+        title: 'Berhasil!',
+        text: message,
+        icon: 'success',
+        timer: 3000, // Pop-up bakal tampil selama 2 detik
+        showConfirmButton: false, // Sembunyiin tombol biar gak berantakan
+        timerProgressBar: true, // Ada loading bar di bawah pop-up nya
+        allowOutsideClick: false // User gak bisa asal klik luar buat matiin
+    });
 
-        hideAddRoomForm();
-        loadRooms();
+    
+    loadRooms();       // Refresh data lo
 
     } catch (error) {
-        alert('Gagal menyimpan kamar: ' + error.message);
+        // Kalau error juga tampilannya harus pro
+        Swal.fire({
+            title: 'Gagal!',
+            text: error.message || 'Terjadi kesalahan sistem',
+            icon: 'error',
+            confirmButtonColor: '#ef4444'
+        });
     }
 }
 
@@ -164,14 +182,42 @@ function editRoom(id) {
 }
 
 async function deleteRoom(id) {
-    if (!confirm('Apakah Anda yakin ingin menghapus kamar ini?')) return;
+    // 1. TAMPILIN KONFIRMASI DULU
+    const result = await Swal.fire({
+        title: 'Apakah Anda yakin?',
+        text: "Data kamar yang dihapus tidak bisa dikembalikan!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#4f46e5', // Warna ungu StayTrack
+        cancelButtonColor: '#ef4444', // Warna merah
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal',
+        reverseButtons: true // Biar tombol Batal di kiri, Hapus di kanan
+    });
 
-    try {
-        await apiRequest(`/api/admin/rooms/${id}`, 'DELETE');
-        loadRooms();
-        alert('Kamar berhasil dihapus!');
-    } catch (error) {
-        alert('Gagal menghapus kamar: ' + error.message);
+    // 2. CEK APAKAH USER KLIK "YA"
+    if (result.isConfirmed) {
+        try {
+            await apiRequest(`/api/admin/rooms/${id}`, 'DELETE');
+
+            // NOTIFIKASI SUKSES SETELAH HAPUS
+            await Swal.fire({
+                title: 'Terhapus!',
+                text: 'Data kamar telah berhasil dihapus.',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            });
+
+            loadRooms(); // Refresh data
+
+        } catch (error) {
+            Swal.fire({
+                title: 'Gagal!',
+                text: error.message || 'Gagal menghapus data',
+                icon: 'error'
+            });
+        }
     }
 }
 

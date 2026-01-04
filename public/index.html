@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistem Pengelola Kost</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="login-page">
+
+    <div class="login-card">
+        <div class="login-left">
+            <div class="brand-wrapper">
+                <i class="fas fa-home-user" style="color: #4f46e5; font-size: 1.5rem;"></i>
+                <span>KostManager</span>
+            </div>
+
+            <h1 class="login-title">Admin Login 👋</h1>
+            <p class="login-subtitle">Selamat datang kembali! Silakan masuk untuk mengelola kos-kosan Anda.</p>
+
+            <form id="loginForm">
+                <div class="form-group-custom">
+                    <label class="form-label">Email Address</label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa-regular fa-envelope"></i>
+                        <input type="email" id="email" placeholder="Masukkan email" required>
+                    </div>
+                </div>
+
+                <div class="form-group-custom">
+                    <label class="form-label">Password</label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="password" placeholder="••••••••" required>
+                        <i class="fa-regular fa-eye" id="togglePassword" style="left: auto; right: 16px; cursor: pointer;"></i>
+                    </div>
+                </div>
+
+                <button type="submit" class="login-btn-new">Masuk Sekarang</button>
+            </form>
+
+            <div id="loginError" class="error-message" style="display: none; margin-top: 15px;"></div>
+            
+            <p class="footer-text">© 2026 KostManager System</p>
+        </div>
+
+        <div class="login-right">
+            <img src="img/system.png" class="login-illustration" alt="Kost Illustration" />
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script type="module" src="js/api.js"></script>
+    <script type="module" src="js/auth.js"></script>
+
+    <script>
+        const togglePassword = document.querySelector('#togglePassword');
+        const passwordInput = document.querySelector('#password');
+
+        togglePassword.addEventListener('click', function () {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+        });
+    </script>
+</body>
+</html>

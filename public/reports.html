@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Keuangan - StayTrack</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body class="dashboard-page">
+
+    <nav class="top-navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-house-chimney-window"></i>
+                <span>StayTrack</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="dashboard.html"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
+                <li><a href="rooms.html"><i class="fas fa-door-open"></i> Kamar</a></li>
+                <li><a href="tenants.html"><i class="fas fa-users"></i> Penyewa</a></li>
+                <li><a href="reports.html" class="active"><i class="fas fa-file-invoice-dollar"></i> Laporan</a></li>
+            </ul>
+            <div class="nav-user">
+                <button id="btnLogout" class="btn-logout-nav">
+                    <i class="fas fa-right-from-bracket"></i> Keluar
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-fluid content-wrapper">
+        <div class="page-header-new" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <div>
+                <h1 style="font-weight: 800; color: #0f172a; margin: 0;">Laporan Keuangan</h1>
+                <p style="color: #64748b; margin: 5px 0 0 0;">Analisa pendapatan dan riwayat transaksi kost Anda.</p>
+            </div>
+            <button id="btnRefreshReport" class="btn-primary-new" style="background: #f1f5f9; color: #4f46e5;">
+                <i class="fas fa-sync-alt"></i> Refresh Data
+            </button>
+        </div>
+
+        <div class="filter-card shadow-sm">
+            <div class="filter-group-wrapper">
+                <div class="filter-input">
+                    <label for="startDate">Tanggal Awal</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="filter-input">
+                    <label for="endDate">Tanggal Akhir</label>
+                    <input type="date" id="endDate">
+                </div>
+                <button id="btnFilterReport" class="btn-filter-action">
+                    <i class="fas fa-filter"></i> Terapkan Filter
+                </button>
+                <button id="btnExportExcel" class="btn-action-custom btn-excel">
+                    <i class="fas fa-file-excel"></i> Export Excel
+                </button>
+            </div>
+        </div>
+
+        <div class="dashboard-grid-new" style="margin-bottom: 30px;">
+            <div class="stat-card-modern color-1">
+                <div class="stat-icon-box"><i class="fas fa-money-bill-wave"></i></div>
+                <div class="stat-content">
+                    <span class="stat-label">Total Pendapatan</span>
+                    <h2 id="totalIncome">Rp 0</h2>
+                </div>
+            </div>
+            <div class="stat-card-modern color-2">
+                <div class="stat-icon-box"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-content">
+                    <span class="stat-label">Pembayaran Berhasil</span>
+                    <h2 id="successfulPayments">0</h2>
+                </div>
+            </div>
+            <div class="stat-card-modern color-3">
+                <div class="stat-icon-box"><i class="fas fa-clock"></i></div>
+                <div class="stat-content">
+                    <span class="stat-label">Pembayaran Tertunda</span>
+                    <h2 id="pendingPayments">0</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-container-modern shadow-sm">
+            <div class="table-header">
+                <h3 style="font-weight: 800; color: #1e293b;">Riwayat Transaksi</h3>
+                <div class="table-info-badge">Real-time Data</div>
+            </div>
+            <div class="table-responsive">
+                <table id="paymentTable" class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Penyewa</th>
+                            <th>No. Kamar</th>
+                            <th>Jumlah</th>
+                            <th>Metode</th>
+                            <th>Status</th>
+                            <th>Tanggal</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentTableBody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="js/api.js"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/reports.js"></script>
+</body>
+</html>

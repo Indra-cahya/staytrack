@@ -1,0 +1,270 @@
+// src/controllers/TenantController.js
+const mongoose = require('mongoose');
+const Tenant = require('../models/Tenant'); 
+const Room = require('../models/Room'); 
+const { User } = require('../models/User'); 
+
+/**
+ * [ABSTRACTION - TENANCY MANAGEMENT LAYER]
+ * Class ini mengabstraksikan siklus hidup penyewa, mulai dari Check-in 
+ * hingga Check-out, serta memastikan integritas data antar objek terkait.
+ */
+class TenantController {
+    /**
+     * [ATOMICITY & OBJECT INTERACTION]
+     * Metode createTenant menggunakan Database Transaction. 
+     * Ini memastikan interaksi antara objek Tenant, Room, dan Payment 
+     * bersifat atomik (semua berhasil atau tidak sama sekali).
+     */
+    static async createTenant(req, res) {
+    const session = await mongoose.startSession(); 
+    session.startTransaction();
+
+    try {
+        const { name, phone, idNumber, roomId, paymentMethod } = req.body;
+        const adminId = req.userId; 
+        
+        // 1. Cek duplikasi Penyewa berdasarkan No. KTP
+        const existingTenant = await Tenant.findOne({ idNumber }).session(session);
+        if (existingTenant) {
+            await session.abortTransaction();
+            return res.status(409).json({ message: 'No. KTP sudah terdaftar sebagai penyewa.' });
+        }
+
+        // 2. Cek & Update Kamar: Lock yang 'available'
+        const room = await Room.findOneAndUpdate(
+            { _id: roomId, status: 'available' },
+            { $set: { status: 'occupied' } },
+            { new: true, session }
+        );
+
+        if (!room) {
+            await session.abortTransaction();
+            const checkRoom = await Room.findById(roomId).session(session);
+            const message = checkRoom 
+                ? `Kamar ${checkRoom.roomNumber} saat ini berstatus '${checkRoom.status}', tidak bisa diisi.`
+                : 'Kamar tidak ditemukan.';
+            return res.status(400).json({ message });
+        }
+        
+        // 3. Buat dokumen Penyewa baru
+        const newTenant = new Tenant({
+            name,
+            phone,
+            idNumber,
+            roomId: room._id, 
+            adminId,
+            isActive: true,
+            preferredPaymentMethod: paymentMethod // ✅ Simpan metode pembayaran
+        });
+
+        await newTenant.save({ session });
+        
+        // 4. Update Room dengan ID Penyewa
+        await Room.findByIdAndUpdate(
+            roomId, 
+            { currentTenant: newTenant._id },
+            { session } 
+        );
+
+        // 5. Buat catatan pembayaran **AWAL** (opsional, tapi sangat direkomendasikan)
+        //    Hanya jika kamu ingin langsung mencatat pembayaran pertama.
+        //    Jika tidak, cukup simpan `preferredPaymentMethod` saja.
+        if (paymentMethod) {
+            const Payment = require('../models/Payment'); // Pastikan model ini ada
+            const newPayment = new Payment({
+                tenantId: newTenant._id,
+                roomId: room._id,
+                adminId: adminId,
+                method: paymentMethod,
+                amount: room.price, // Ambil harga dari kamar
+                note: `Pembayaran awal - Kamar ${room.roomNumber}`,
+                status: 'completed' // Anggap langsung lunas saat daftar
+            });
+            await newPayment.save({ session });
+        }
+
+        // 6. COMMIT TRANSACTION
+        await session.commitTransaction(); 
+
+        res.status(201).json({
+            success: true,
+            message: `Penyewa ${name} berhasil ditambahkan, kamar ${room.roomNumber} terisi, metode bayar: ${paymentMethod}.`,
+            data: {
+                tenant: newTenant,
+                room: { _id: room._id, status: 'occupied' }
+            }
+        });
+
+    } catch (error) {
+        await session.abortTransaction();
+        console.error('💥 Error creating tenant with payment:', error);
+        res.status(500).json({ message: 'Server error saat menyimpan data penyewa.', error: error.message });
+    } finally {
+        session.endSession();
+    }
+}
+
+    static async checkoutTenant(req, res) {
+        const session = await mongoose.startSession(); 
+        session.startTransaction();
+
+        try {
+            const { id } = req.params; // ID Penyewa yang akan checkout
+            
+            // 1. Cari Penyewa
+            const tenant = await Tenant.findById(id).session(session);
+
+            if (!tenant) {
+                await session.abortTransaction();
+                return res.status(404).json({ message: 'Data Penyewa tidak ditemukan.' });
+            }
+            
+            if (tenant.isActive === false) {
+                 await session.abortTransaction();
+                 return res.status(400).json({ message: 'Penyewa ini sudah berstatus tidak aktif (sudah checkout).' });
+            }
+
+            const roomId = tenant.roomId;
+
+            // 2. Update Kamar: Set status menjadi 'available' dan bersihkan currentTenant
+            const room = await Room.findByIdAndUpdate(
+                roomId,
+                { 
+                    status: 'available',
+                    currentTenant: null 
+                },
+                { new: true, session }
+            );
+
+            // 3. Update Penyewa: Tandai sebagai tidak aktif dan catat tanggal checkout
+            const updatedTenant = await Tenant.findByIdAndUpdate(
+                id,
+                { 
+                    isActive: false, 
+                    checkoutDate: Date.now() 
+                },
+                { new: true, session }
+            );
+
+            if (!room) {
+                 await session.abortTransaction();
+                 return res.status(404).json({ message: 'Kamar terkait tidak ditemukan (Error integritas data).' });
+            }
+
+            // 4. Commit Transaction
+            await session.commitTransaction();
+            
+            res.json({
+                success: true,
+                message: `Penyewa ${updatedTenant.name} berhasil checkout. Kamar ${room.roomNumber} kini berstatus 'available'.`,
+                data: { tenant: updatedTenant, room: room }
+            });
+
+        } catch (error) {
+            await session.abortTransaction();
+            console.error('💥 Error during tenant checkout:', error);
+            res.status(500).json({ message: 'Server error saat memproses checkout penyewa.', error: error.message });
+        } finally {
+            session.endSession();
+        }
+    }
+    /**
+     * [ENCAPSULATION - DATA FILTERING]
+     * Mengambil koleksi objek berdasarkan kriteria status (isActive: true).
+     */
+        static async getAllTenants(req, res) {
+        try {
+            // Hanya tampilkan penyewa yang statusnya masih aktif (isActive: true)
+            const tenants = await Tenant.find({ isActive: true })
+                .populate({
+                    path: 'roomId',
+                    select: 'roomNumber price status type' 
+                })
+                .select('-__v')
+                .sort({ createdAt: -1 });
+
+            res.json({
+                success: true,
+                message: 'Daftar penyewa aktif berhasil diambil.',
+                data: tenants,
+                count: tenants.length
+            });
+        } catch (error) {
+            console.error('💥 Error getting active tenants:', error);
+            res.status(500).json({ message: 'Server error saat mengambil data penyewa.', error: error.message });
+        }
+    }
+// src/controllers/TenantController.js (Tambahkan function ini)
+
+    static async getTenantDetail(req, res) {
+        try {
+            const { id } = req.params;
+            
+            const tenant = await Tenant.findById(id)
+                .populate({
+                    path: 'roomId',
+                    select: 'roomNumber price status type'
+                })
+                .select('-__v -adminId'); // Hilangkan field internal dari response
+
+            if (!tenant) {
+                return res.status(404).json({ message: 'Penyewa tidak ditemukan.' });
+            }
+
+            res.json({
+                success: true,
+                message: 'Detail penyewa berhasil diambil.',
+                data: tenant
+            });
+        } catch (error) {
+            console.error('💥 Error getting tenant detail:', error);
+            res.status(500).json({ message: 'Server error saat mengambil detail penyewa.', error: error.message });
+        }
+    }
+        static async updateTenant(req, res) {
+        try {
+            const { id } = req.params;
+            const updateData = req.body;
+            
+            // Cek duplikasi KTP jika field idNumber diubah
+            if (updateData.idNumber) {
+                const existingTenant = await Tenant.findOne({ 
+                    idNumber: updateData.idNumber, 
+                    _id: { $ne: id } // Kecuali penyewa yang sedang di-update
+                });
+                if (existingTenant) {
+                    return res.status(409).json({ message: 'No. KTP sudah digunakan oleh penyewa lain.' });
+                }
+            }
+
+            // Cari dan update
+            const updatedTenant = await Tenant.findByIdAndUpdate(
+                id,
+                { $set: updateData },
+                { new: true, runValidators: true } // new: true: mengembalikan data terbaru
+            ).select('-__v -adminId');
+
+            if (updateData.idNumber) {
+            const existingTenant = await Tenant.findOne({ 
+                idNumber: updateData.idNumber, 
+                _id: { $ne: id } 
+            });
+            if (existingTenant) {
+                return res.status(409).json({ message: 'No. KTP sudah digunakan oleh penyewa lain.' });
+            }
+        }
+
+            res.json({
+                success: true,
+                message: 'Data penyewa berhasil diperbarui.',
+                data: updatedTenant
+            });
+        } catch (error) {
+            console.error('💥 Error updating tenant:', error);
+            res.status(500).json({ message: 'Server error saat memperbarui data penyewa.', error: error.message });
+        }
+    }
+}
+
+module.exports = TenantController;

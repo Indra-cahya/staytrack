@@ -75,15 +75,19 @@
                             </select>
                         </div>
                         <div class="form-group-custom">
-                            <label for="price">Harga(Rp)</label>
-                            <input type="number" id="price" class="form-input-new" placeholder="Contoh: 1500000" required>
+                            <label>Harga Sewa Bulanan (Rp)</label>
+                            <input type="number" id="priceMonthly" class="form-input" placeholder="Contoh: 1500000">
+                        </div>
+
+                        <div class="form-group-custom">
+                            <label>Harga Sewa Harian (Rp)</label>
+                            <input type="number" id="priceDaily" class="form-input" placeholder="Contoh: 150000">
                         </div>
                         <div class="form-group-custom">
                             <label for="capacity">Kapasitas (Orang)</label>
                             <input type="number" id="capacity" class="form-input-new" min="1" max="10" placeholder="Contoh: 2" required>
                         </div>
                     </div>
-
                     <div class="form-group-custom" style="margin-top: 15px;">
                         <label for="facilities">Fasilitas</label>
                         <textarea id="facilities" class="form-input-new" placeholder="Contoh: AC, WiFi..." style="height: 100px; resize: none;" required></textarea>

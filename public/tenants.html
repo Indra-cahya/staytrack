@@ -96,7 +96,28 @@
                 <div id="qrisContainer"></div>
             </div>
         </div>
+        <div class="form-group-custom">
+    <label for="rentalType">Tipe Sewa</label>
+    <select id="rentalType" class="form-input" onchange="toggleRentalFields()">
+        <option value="monthly">Bulanan (Anak Kos)</option>
+        <option value="daily">Harian (Tamu)</option>
+    </select>
+</div>
 
+<div id="monthlyFields" class="rental-detail-section">
+    <div class="form-group-custom">
+        <label for="dueDate">Tanggal Jatuh Tempo (Tiap Bulan)</label>
+        <input type="number" id="dueDate" class="form-input" min="1" max="31" placeholder="Contoh: 5">
+        <small>Tagihan otomatis muncul tiap tanggal ini.</small>
+    </div>
+</div>
+
+<div id="dailyFields" class="rental-detail-section" style="display: none;">
+    <div class="form-group-custom">
+        <label for="checkoutDate">Rencana Check-out</label>
+        <input type="date" id="checkoutDate" class="form-input">
+    </div>
+</div>
         <div class="modal-footer">
             <button class="btn-cancel" id="btnCancelTenant">Batal</button>
             <button class="btn-save" id="btnSaveTenant">Simpan Data Penyewa</button>

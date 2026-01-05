@@ -2,7 +2,7 @@ import { apiRequest } from './api.js';
 import { checkAuth } from './auth.js';
 
 let currentEditingRoomId = null;
-let allRooms = []; // Simpan data kamar untuk edit
+let allRooms = []; 
 
 document.addEventListener('DOMContentLoaded', () => {
     if (!window.location.pathname.endsWith('rooms.html')) return;
@@ -10,14 +10,13 @@ document.addEventListener('DOMContentLoaded', () => {
     loadRooms();
     setupSidebarNavigation();
 
-    // SETUP TOMBOL YANG BENER:
-    const headerBtn = document.getElementById('showAddRoom'); // Pakai ID tombol kamu
+    const headerBtn = document.getElementById('showAddRoom'); 
     const btnSaveRoom = document.getElementById('btnSaveRoom');
     const btnCancelRoom = document.getElementById('btnCancelRoom');
 
     if (headerBtn) {
         headerBtn.addEventListener('click', () => {
-            currentEditingRoomId = null; // Pastikan reset ID saat mau tambah baru
+            currentEditingRoomId = null; 
             showAddRoomForm();
         });
     }
@@ -40,62 +39,71 @@ function showAddRoomForm() {
     modal.style.display = 'flex';
     document.getElementById('formTitle').textContent = currentEditingRoomId ? 'Edit Kamar' : 'Tambah Kamar Baru';
     
-    // Reset form
+    // Reset form ke kosong
     document.getElementById('roomNumber').value = '';
-    document.getElementById('price').value = '';
+    if(document.getElementById('priceMonthly')) document.getElementById('priceMonthly').value = '';
+    if(document.getElementById('priceDaily')) document.getElementById('priceDaily').value = '';
+    
     document.getElementById('type').value = '';
     document.getElementById('capacity').value = '';
     document.getElementById('facilities').value = '';
-    currentEditingRoomId = null;
 }
 
 function hideAddRoomForm() {
     document.getElementById('addRoomForm').style.display = 'none';
+    currentEditingRoomId = null;
 }
 
-// Fungsi baru: simpan (create atau update)
 async function saveRoom() {
     const roomNumber = document.getElementById('roomNumber').value.trim();
-    const price = parseFloat(document.getElementById('price').value);
+    const priceMonthly = parseFloat(document.getElementById('priceMonthly').value);
+    const priceDaily = parseFloat(document.getElementById('priceDaily').value);
     const type = document.getElementById('type').value;
     const capacity = parseInt(document.getElementById('capacity').value);
-    const facilities = document.getElementById('facilities').value.trim();
-
-    if (!roomNumber || isNaN(price) || !type || isNaN(capacity) || !facilities) {
-        alert('Semua field harus diisi dengan benar!');
-        return;
+    const facilitiesInput = document.getElementById('facilities').value.trim();
+    const facilitiesArray = facilitiesInput ? facilitiesInput.split(',').map(f => f.trim()) : [];
+    if (!roomNumber || isNaN(priceMonthly) || isNaN(priceDaily) || !type || isNaN(capacity) || !facilities) {
+        return Swal.fire({
+            title: 'Waduh!',
+            text: 'Semua harga (Bulanan & Harian) serta data lainnya wajib diisi ya Bos!',
+            icon: 'warning'
+        });
     }
 
-    const data = { roomNumber, price, type, capacity, facilities };
+    const data = { 
+        roomNumber, 
+        priceMonthly, 
+        priceDaily, 
+        price: priceMonthly, // Untuk bypass validasi backend lama
+        type, 
+        capacity, 
+        facilities: facilitiesArray
+    };
 
     try {
-    let message = "";
-    if (currentEditingRoomId) {
-        // Mode UPDATE
-        await apiRequest(`/api/admin/rooms/${currentEditingRoomId}`, 'PUT', data);
-        message = 'Kamar berhasil diperbarui!';
-    } else {
-        // Mode CREATE
-        await apiRequest('/api/admin/rooms/create', 'POST', data);
-        message = 'Kamar berhasil ditambahkan!';
-    }
-    hideAddRoomForm(); // Pake fungsi tutup lo yang lama
-    // GANTI ALERT JADUL PAKE INI:
-await Swal.fire({
-        title: 'Berhasil!',
-        text: message,
-        icon: 'success',
-        timer: 3000, // Pop-up bakal tampil selama 2 detik
-        showConfirmButton: false, // Sembunyiin tombol biar gak berantakan
-        timerProgressBar: true, // Ada loading bar di bawah pop-up nya
-        allowOutsideClick: false // User gak bisa asal klik luar buat matiin
-    });
+        let message = "";
+        if (currentEditingRoomId) {
+            await apiRequest(`/api/admin/rooms/${currentEditingRoomId}`, 'PUT', data);
+            message = 'Kamar berhasil diperbarui!';
+        } else {
+            await apiRequest('/api/admin/rooms/create', 'POST', data);
+            message = 'Kamar berhasil ditambahkan!';
+        }
 
-    
-    loadRooms();       // Refresh data lo
+        hideAddRoomForm();
+
+        await Swal.fire({
+            title: 'Berhasil!',
+            text: message,
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false,
+            timerProgressBar: true
+        });
+
+        loadRooms(); 
 
     } catch (error) {
-        // Kalau error juga tampilannya harus pro
         Swal.fire({
             title: 'Gagal!',
             text: error.message || 'Terjadi kesalahan sistem',
@@ -114,110 +122,92 @@ async function loadRooms() {
         const countSpan = document.getElementById('roomCount');
 
         if (!container) return;
-
         container.innerHTML = '';
 
         if (!Array.isArray(allRooms)) {
-            container.innerHTML = '<p style="color:red;">Format data kamar tidak valid.</p>';
             countSpan.textContent = '0 kamar';
             return;
         }
 
         countSpan.textContent = `${allRooms.length} kamar`;
 
-        if (allRooms.length === 0) {
-            container.innerHTML = '<p style="color:#777; text-align:center;">Belum ada kamar terdaftar.</p>';
-            return;
-        }
-
         allRooms.forEach(room => {
             const statusText = room.status === 'available' ? 'Tersedia' : 'Ditempati';
             const statusColor = room.status === 'available' ? '#27ae60' : '#e74c3c';
-            const tenantName = room.currentTenant ? room.currentTenant.name : '—';
-
+            const fasilitasTampil = Array.isArray(room.facilities) 
+        ? room.facilities.join(', ') 
+        : (room.facilities || '—');
             const div = document.createElement('div');
             div.className = 'list-item';
             div.innerHTML = `
-                <div>
+                <div style="padding: 15px; border-bottom: 1px solid #eee; flex-grow: 1;">
                     <strong>Kamar ${room.roomNumber}</strong> (${room.type})<br>
-                    <small>Harga: Rp ${room.price.toLocaleString('id-ID')}</small><br>
+                    <div style="margin-top: 5px;">
+                        <span style="color: #4f46e5; font-weight: bold;">
+                            Bulanan: Rp ${(room.priceMonthly || 0).toLocaleString('id-ID')}
+                        </span>
+                        <br>
+                        <span style="color: #10b981; font-weight: bold;">
+                            Harian: Rp ${(room.priceDaily || 0).toLocaleString('id-ID')}
+                        </span>
+                    </div>
+                    <small>Fasilitas: <span style="color: #64748b;">${fasilitasTampil}</span></small><br>
                     <small>Kapasitas: ${room.capacity} orang</small><br>
-                    <small>Fasilitas: ${room.facilities || '—'}</small><br>
-                    <small>Status: <span style="color:${statusColor}">${statusText}</span></small><br>
-                    <small>Penyewa: ${tenantName}</small>
+                    <small>Status: <span style="color:${statusColor}">${statusText}</span></small>
                 </div>
-                <div class="list-actions">
-                    <button class="edit">Edit</button>
-                    <button class="delete">Hapus</button>
+                <div class="list-actions" style="padding: 10px; display: flex; gap: 5px;">
+                    <button class="edit-btn" style="background: #f1f5f9; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Edit</button>
+                    <button class="delete-btn" style="background: #fee2e2; color: #ef4444; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Hapus</button>
                 </div>
             `;
             container.appendChild(div);
 
-            div.querySelector('.edit').addEventListener('click', () => editRoom(room._id));
-            div.querySelector('.delete').addEventListener('click', () => deleteRoom(room._id));
+            div.querySelector('.edit-btn').onclick = () => editRoom(room._id);
+            div.querySelector('.delete-btn').onclick = () => deleteRoom(room._id);
         });
 
     } catch (error) {
         console.error('Gagal memuat kamar:', error);
-        document.getElementById('roomsList').innerHTML = '<p style="color:red;">Gagal memuat data kamar.</p>';
     }
 }
 
 function editRoom(id) {
     const room = allRooms.find(r => r._id === id);
-    if (!room) {
-        alert('Kamar tidak ditemukan.');
-        return;
-    }
+    if (!room) return Swal.fire('Error', 'Kamar tidak ditemukan', 'error');
+
+    currentEditingRoomId = id;
 
     document.getElementById('roomNumber').value = room.roomNumber || '';
-    document.getElementById('price').value = room.price || '';
+    document.getElementById('priceMonthly').value = room.priceMonthly || room.price || 0;
+    document.getElementById('priceDaily').value = room.priceDaily || 0;
     document.getElementById('type').value = room.type || '';
     document.getElementById('capacity').value = room.capacity || '';
     document.getElementById('facilities').value = room.facilities || '';
 
-    currentEditingRoomId = id;
-    document.getElementById('formTitle').textContent = 'Edit Kamar';
+    document.getElementById('formTitle').textContent = 'Edit Kamar ' + room.roomNumber;
     document.getElementById('addRoomForm').style.display = 'flex';
 }
 
 async function deleteRoom(id) {
-    // 1. TAMPILIN KONFIRMASI DULU
     const result = await Swal.fire({
         title: 'Apakah Anda yakin?',
         text: "Data kamar yang dihapus tidak bisa dikembalikan!",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#4f46e5', // Warna ungu StayTrack
-        cancelButtonColor: '#ef4444', // Warna merah
+        confirmButtonColor: '#4f46e5',
+        cancelButtonColor: '#ef4444',
         confirmButtonText: 'Ya, Hapus!',
         cancelButtonText: 'Batal',
-        reverseButtons: true // Biar tombol Batal di kiri, Hapus di kanan
+        reverseButtons: true
     });
 
-    // 2. CEK APAKAH USER KLIK "YA"
     if (result.isConfirmed) {
         try {
             await apiRequest(`/api/admin/rooms/${id}`, 'DELETE');
-
-            // NOTIFIKASI SUKSES SETELAH HAPUS
-            await Swal.fire({
-                title: 'Terhapus!',
-                text: 'Data kamar telah berhasil dihapus.',
-                icon: 'success',
-                timer: 1500,
-                showConfirmButton: false
-            });
-
-            loadRooms(); // Refresh data
-
+            await Swal.fire({ title: 'Terhapus!', text: 'Kamar berhasil dihapus.', icon: 'success', timer: 1500, showConfirmButton: false });
+            loadRooms(); 
         } catch (error) {
-            Swal.fire({
-                title: 'Gagal!',
-                text: error.message || 'Gagal menghapus data',
-                icon: 'error'
-            });
+            Swal.fire('Gagal!', error.message, 'error');
         }
     }
 }
-

@@ -10,13 +10,15 @@ const tenantSchema = new mongoose.Schema({
     name: { type: String, required: true, trim: true },
     phone: { type: String, required: true, trim: true },
     idNumber: { type: String, required: true, unique: true }, 
-    /**
-     * [ASSOCIATION - RELATIONSHIP]
-     * Bagian ini menunjukkan hubungan antar objek. Dalam OOP, ini disebut 
-     * 'Aggregation' atau 'Association'. Objek Tenant memiliki referensi 
-     * ke objek 'Room' dan 'User'. Ini membuktikan bahwa sistem kita 
-     * terdiri dari objek-objek yang saling berinteraksi.
-     */
+    
+    // TAMBAHKAN INI BIAR SISTEM TAU DIA HARIAN ATAU BULANAN
+    rentalType: { 
+        type: String, 
+        enum: ['monthly', 'daily'], 
+        default: 'monthly',
+        required: true 
+    },
+
     roomId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Room',
@@ -28,23 +30,22 @@ const tenantSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    /**
-     * [ENCAPSULATION - STATE MANAGEMENT]
-     * Field 'isActive' dan 'checkoutDate' digunakan untuk menjaga 'State' 
-     * atau kondisi dari objek Tenant. Perubahan pada field ini sebaiknya 
-     * dikelola melalui metode atau logika bisnis tertentu untuk menjaga 
-     * konsistensi data.
-     */
-       isActive: { 
+
+    isActive: { 
         type: Boolean, 
         default: true 
     },
     preferredPaymentMethod: { 
-    type: String, 
-    enum: ['cash', 'transfer', 'qr'] 
+        type: String, 
+        enum: ['cash', 'transfer', 'qr'] 
     },
+
+    // Field untuk Bulanan
+    dueDate: { type: String }, 
+    
+    // Field untuk Harian (Sudah ada di kode lo, tinggal pastiin kepake)
     checkoutDate: { type: Date }
-    // Mengotomatisasi pencatatan waktu pembuatan dan modifikasi objek
+
 }, { timestamps: true });
 
 module.exports = mongoose.model('Tenant', tenantSchema);

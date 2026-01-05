@@ -14,45 +14,46 @@ class RoomController {
      * objek benar-benar disimpan ke dalam persistence layer.
      */
     static async createRoom(req, res) {
-        try {
-            const { roomNumber, type, price, capacity, facilities } = req.body;
-            
-            // 1. Cek duplikasi
-            const existingRoom = await Room.findOne({ roomNumber });
-            if (existingRoom) {
-                return res.status(409).json({ 
-                    success: false, 
-                    message: `Kamar nomor ${roomNumber} sudah terdaftar.` 
-                });
-            }
-            
-            // 2. Buat dokumen Kamar baru
-            const newRoom = new Room({
-                roomNumber,
-                type,
-                price,
-                capacity,
-                facilities: facilities || [],
-                status: 'available'
-            });
-
-            await newRoom.save();
-
-            res.status(201).json({
-                success: true,
-                message: `Kamar ${roomNumber} (${type}) berhasil ditambahkan.`,
-                data: newRoom
-            });
-
-        } catch (error) {
-            console.error('💥 Error creating room:', error);
-            res.status(500).json({ 
-                success: false,
-                message: 'Server error saat membuat kamar baru.',
-                error: error.message
+    try {
+        const { roomNumber, type, priceMonthly, priceDaily, capacity, facilities } = req.body;
+        
+        const existingRoom = await Room.findOne({ roomNumber });
+        if (existingRoom) {
+            return res.status(409).json({ 
+                success: false, 
+                message: `Kamar nomor ${roomNumber} sudah terdaftar.` 
             });
         }
+        
+        // Pastikan kita kirim 'price' (untuk model lama) dan field baru
+        const newRoom = new Room({
+            roomNumber,
+            type,
+            price: priceMonthly || 0, // Isi 'price' utama dengan harga bulanan agar validasi model lolos
+            priceMonthly: priceMonthly || 0,
+            priceDaily: priceDaily || 0,
+            capacity,
+            facilities: facilities || [],
+            status: 'available'
+        });
+
+        await newRoom.save();
+
+        res.status(201).json({
+            success: true,
+            message: `Kamar ${roomNumber} (${type}) berhasil ditambahkan.`,
+            data: newRoom
+        });
+
+    } catch (error) {
+        console.error('💥 Error creating room:', error);
+        res.status(500).json({ 
+            success: false,
+            message: 'Server error saat membuat kamar baru.',
+            error: error.message
+        });
     }
+}
 
     /**
      * [OBJECT ASSOCIATION - POPULATE]
@@ -94,34 +95,21 @@ class RoomController {
      * Penggunaan 'runValidators: true' memastikan bahwa enkapsulasi aturan 
      * pada Model tetap dijalankan saat proses pembaruan data.
      */
-    static async updateRoom(req, res) {
-        try {
-            const { id } = req.params; 
-            const updateData = req.body; 
-            
-            if (updateData.roomNumber) {
-                const existingRoom = await Room.findOne({ 
-                    roomNumber: updateData.roomNumber, 
-                    _id: { $ne: id } 
-                });
-                if (existingRoom) {
-                    return res.status(409).json({ 
-                        success: false, 
-                        message: `Nomor kamar ${updateData.roomNumber} sudah digunakan oleh kamar lain.` 
-                    });
-                }
-            }
+static async updateRoom(req, res) {
+    try {
+        const { id } = req.params;
+        let updateData = req.body;
 
-            const updatedRoom = await Room.findByIdAndUpdate(
-                id, 
-                { $set: updateData }, 
-                { new: true, runValidators: true }
-            );
+        // Sinkronkan harga lama (price) dengan harga baru agar loadRooms lama gak 0
+        if (updateData.priceMonthly) {
+            updateData.price = updateData.priceMonthly;
+        }
 
-            if (!updatedRoom) {
-                return res.status(404).json({ success: false, message: 'Kamar tidak ditemukan.' });
-            }
-
+        const updatedRoom = await Room.findByIdAndUpdate(
+            id,
+            { $set: updateData },
+            { new: true, runValidators: true }
+        );
             res.json({
                 success: true,
                 message: `Kamar ${updatedRoom.roomNumber} berhasil diperbarui.`,

@@ -70,16 +70,37 @@ async function loadReport() {
         if (startDate) params.append('startDate', startDate);
         if (endDate) params.append('endDate', endDate);
 
-        // FIX: Tambahin .toString() biar parameternya beneran jadi query string
+        // Ambil data dari API
         const response = await apiRequest(`/api/admin/reports?${params.toString()}`);
         const data = response.data || response;
+        const payments = data.payments || [];
 
-        // Update Ringkasan Statis
-        document.getElementById('totalIncome').textContent = formatRupiah(data.totalIncome || 0);
-        document.getElementById('successfulPayments').textContent = data.successfulPayments || 0;
+        // 1. LOGIC PEMISAHAN CUAN (HYBRID)
+        const totalBulanan = payments
+            .filter(p => p.rentalType === 'monthly')
+            .reduce((sum, p) => sum + (p.amount || 0), 0);
 
-        // Render Tabel
-        renderPaymentTable(data.payments || []);
+        const totalHarian = payments
+            .filter(p => p.rentalType === 'daily')
+            .reduce((sum, p) => sum + (p.amount || 0), 0);
+
+        // 2. UPDATE RINGKASAN STATIS KE UI
+        if (document.getElementById('totalIncome')) {
+            document.getElementById('totalIncome').textContent = formatRupiah(data.totalIncome || 0);
+        }
+        if (document.getElementById('monthlyIncome')) {
+            document.getElementById('monthlyIncome').textContent = formatRupiah(totalBulanan);
+        }
+        if (document.getElementById('dailyIncome')) {
+            document.getElementById('dailyIncome').textContent = formatRupiah(totalHarian);
+        }
+        if (document.getElementById('successfulPayments')) {
+            document.getElementById('successfulPayments').textContent = data.successfulPayments || 0;
+        }
+
+        // 3. RENDER TABEL DENGAN DATA ASLI
+        renderPaymentTable(payments);
+
     } catch (error) {
         console.error('Gagal memuat laporan:', error);
         renderPaymentTable([]);
@@ -116,6 +137,9 @@ function renderPaymentTable(payments) {
     const statusStyle = payment.status?.toLowerCase() === 'paid' || payment.status?.toLowerCase() === 'completed'
         ? 'background: #dcfce7; color: #15803d;' 
         : 'background: #fef9c3; color: #a16207;';
+    const typeBadge = payment.rentalType === 'daily' 
+    ? '<span style="background: #ecfdf5; color: #065f46; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800;">HARIAN</span>'
+    : '<span style="background: #eff6ff; color: #1e40af; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800;">BULANAN</span>';
 
     row.innerHTML = `
         <td style="padding: 15px; border-bottom: 1px solid #f1f5f9;">${payment.tenantName}</td>
@@ -157,32 +181,48 @@ function formatDate(dateString) {
 
 // Fungsi tambah pembayaran manual (jika kamu ingin fitur ini di laporan)
 async function recordPayment() {
-    // Ambil element input
     const tenantName = document.getElementById('tenantName').value.trim();
     const amount = parseFloat(document.getElementById('amount').value);
-    const methodSelect = document.getElementById('paymentType'); // Dropdown Cash/Transfer/QRIS
+    const methodSelect = document.getElementById('paymentType');
 
     if (!tenantName || isNaN(amount) || !methodSelect.value) {
-        alert('Semua field harus diisi dengan benar!');
-        return;
+        return Swal.fire('Waduh!', 'Isi semua data dulu Bos!', 'warning');
     }
 
     try {
-        // KITA KIRIM paymentMethod SESUAI YANG DITUNGGU BACKEND
-        await apiRequest('/admin/payments/create', 'POST', {
+        // 1. CEK DULU SI PENYEWA INI HARIAN ATAU BULANAN
+        const tenantRes = await apiRequest(`/api/admin/tenants`);
+        const allTenants = tenantRes.data || tenantRes;
+        
+        // Cari datanya berdasarkan nama
+        const targetTenant = allTenants.find(t => t.name.toLowerCase() === tenantName.toLowerCase());
+        
+        // Ambil tipenya, kalau ga ketemu anggap bulanan
+        const type = targetTenant ? targetTenant.rentalType : 'monthly';
+
+        // 2. KIRIM PEMBAYARAN BESERTA TIPENYA
+        await apiRequest('/api/admin/payments/create', 'POST', {
             tenantName: tenantName, 
             amount: amount,
-            paymentMethod: methodSelect.value // Ini kuncinya!
+            paymentMethod: methodSelect.value,
+            rentalType: type // <--- INI BIAR KARTU DI LAPORAN BERUBAH
         });
 
-        alert('Pembayaran berhasil dicatat!');
-        // Reset form & reload
+        await Swal.fire({
+            title: 'Berhasil!',
+            text: `Duit ${type === 'daily' ? 'Harian' : 'Bulanan'} masuk!`,
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
+        });
+
+        // Reset & Refresh
         document.getElementById('tenantName').value = '';
         document.getElementById('amount').value = '';
-        methodSelect.value = '';
         loadReport(); 
+
     } catch (error) {
-        alert('Gagal: ' + error.message);
+        Swal.fire('Gagal!', error.message, 'error');
     }
 }
 // Tambahin ini di setupEventListeners

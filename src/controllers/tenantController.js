@@ -21,17 +21,16 @@ class TenantController {
     session.startTransaction();
 
     try {
-        const { name, phone, idNumber, roomId, paymentMethod } = req.body;
+        // 1. TAMBAHIN rentalType, dueDate, checkoutDate di sini
+        const { name, phone, idNumber, roomId, paymentMethod, rentalType, dueDate, checkoutDate } = req.body;
         const adminId = req.userId; 
         
-        // 1. Cek duplikasi Penyewa berdasarkan No. KTP
         const existingTenant = await Tenant.findOne({ idNumber }).session(session);
         if (existingTenant) {
             await session.abortTransaction();
-            return res.status(409).json({ message: 'No. KTP sudah terdaftar sebagai penyewa.' });
+            return res.status(409).json({ message: 'No. KTP sudah terdaftar.' });
         }
 
-        // 2. Cek & Update Kamar: Lock yang 'available'
         const room = await Room.findOneAndUpdate(
             { _id: roomId, status: 'available' },
             { $set: { status: 'occupied' } },
@@ -40,14 +39,10 @@ class TenantController {
 
         if (!room) {
             await session.abortTransaction();
-            const checkRoom = await Room.findById(roomId).session(session);
-            const message = checkRoom 
-                ? `Kamar ${checkRoom.roomNumber} saat ini berstatus '${checkRoom.status}', tidak bisa diisi.`
-                : 'Kamar tidak ditemukan.';
-            return res.status(400).json({ message });
+            return res.status(400).json({ message: 'Kamar tidak tersedia.' });
         }
         
-        // 3. Buat dokumen Penyewa baru
+        // 2. SIMPAN rentalType & Tanggal Terkait
         const newTenant = new Tenant({
             name,
             phone,
@@ -55,51 +50,41 @@ class TenantController {
             roomId: room._id, 
             adminId,
             isActive: true,
-            preferredPaymentMethod: paymentMethod // ✅ Simpan metode pembayaran
+            rentalType: rentalType || 'monthly', // Biar gak default ke bulanan terus
+            preferredPaymentMethod: paymentMethod,
+            dueDate: rentalType === 'monthly' ? dueDate : null,
+            checkoutDate: rentalType === 'daily' ? checkoutDate : null
         });
 
         await newTenant.save({ session });
         
-        // 4. Update Room dengan ID Penyewa
-        await Room.findByIdAndUpdate(
-            roomId, 
-            { currentTenant: newTenant._id },
-            { session } 
-        );
+        await Room.findByIdAndUpdate(roomId, { currentTenant: newTenant._id }, { session });
 
-        // 5. Buat catatan pembayaran **AWAL** (opsional, tapi sangat direkomendasikan)
-        //    Hanya jika kamu ingin langsung mencatat pembayaran pertama.
-        //    Jika tidak, cukup simpan `preferredPaymentMethod` saja.
+        // 3. LOGIC HARGA DINAMIS (Harian vs Bulanan)
         if (paymentMethod) {
-            const Payment = require('../models/Payment'); // Pastikan model ini ada
+            const Payment = require('../models/Payment');
+            // Pilih harga sesuai tipe sewa
+            const finalPrice = (rentalType === 'daily') ? (room.priceDaily || 0) : (room.priceMonthly || room.price);
+
             const newPayment = new Payment({
                 tenantId: newTenant._id,
                 roomId: room._id,
                 adminId: adminId,
                 method: paymentMethod,
-                amount: room.price, // Ambil harga dari kamar
-                note: `Pembayaran awal - Kamar ${room.roomNumber}`,
-                status: 'completed' // Anggap langsung lunas saat daftar
+                amount: finalPrice, // SEKARANG DINAMIS!
+                rentalType: rentalType, // Biar masuk laporan yang bener
+                note: `Pembayaran awal (${rentalType}) - Kamar ${room.roomNumber}`,
+                status: 'completed'
             });
             await newPayment.save({ session });
         }
 
-        // 6. COMMIT TRANSACTION
         await session.commitTransaction(); 
-
-        res.status(201).json({
-            success: true,
-            message: `Penyewa ${name} berhasil ditambahkan, kamar ${room.roomNumber} terisi, metode bayar: ${paymentMethod}.`,
-            data: {
-                tenant: newTenant,
-                room: { _id: room._id, status: 'occupied' }
-            }
-        });
+        res.status(201).json({ success: true, message: 'Penyewa berhasil ditambahkan!' });
 
     } catch (error) {
         await session.abortTransaction();
-        console.error('💥 Error creating tenant with payment:', error);
-        res.status(500).json({ message: 'Server error saat menyimpan data penyewa.', error: error.message });
+        res.status(500).json({ message: 'Error simpan penyewa', error: error.message });
     } finally {
         session.endSession();
     }

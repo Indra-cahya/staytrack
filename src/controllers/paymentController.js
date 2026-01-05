@@ -35,6 +35,7 @@ class PaymentController {
             amount,
             // 2. PASTIKAN INI MASUK KE DATABASE
             paymentMethod: paymentMethod || 'CASH', 
+            rentalType: rentalType || 'monthly',
             status: 'paid',
             proofImage: proofImage || null,
             verifiedBy: adminId,
@@ -114,7 +115,8 @@ class PaymentController {
                 roomNumber: { $arrayElemAt: ["$room.roomNumber", 0] },
                 amount: 1,
                 status: 1,
-                // INI KUNCINYA: Ambil dari payment, kalo gak ada ambil dari profil penyewa
+                // AMBIL rentalType DARI DATABASE
+                rentalType: 1, 
                 method: { 
                     $ifNull: [
                         "$paymentMethod", 
@@ -134,7 +136,8 @@ class PaymentController {
                 amount: p.amount || 0,
                 method: p.method || '-', 
                 status: p.status || 'unknown',
-                date: p.createdAt // Konsisten ambil dari createdAt
+                rentalType: p.rentalType || 'monthly',
+                date: p.createdAt
             };
         });
 

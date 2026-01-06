@@ -26,6 +26,9 @@
                 <li><a href="dashboard.html"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
                 <li><a href="rooms.html"><i class="fas fa-door-open"></i> Kamar</a></li>
                 <li><a href="tenants.html"><i class="fas fa-users"></i> Penyewa</a></li>
+                 <li id="ownerOnlyMenu" style="display: none;">
+                    <a href="manage-admins.html"><i class="fas fa-user-shield"></i> Kelola Admin</a>
+                </li>
                 <li><a href="reports.html"><i class="fas fa-file-invoice-dollar"></i> Laporan</a></li>
                 <li class="mobile-only">
                     <button class="btn-logout-mobile" onclick="document.getElementById('btnLogout').click()">
@@ -95,29 +98,46 @@
                 <label style="font-size: 0.75rem; color: #64748b; display: block; margin-bottom: 5px;">Preview Pembayaran:</label>
                 <div id="qrisContainer"></div>
             </div>
+            <!-- === TIPE SEWA === -->
+            <div class="form-group-custom" style="margin-top: 20px;">
+                <label for="rentalType">Tipe Sewa</label>
+                <select id="rentalType" class="form-select-new" onchange="toggleRentalFields()">
+                    <option value="monthly">Bulanan</option>
+                    <option value="daily">Harian</option>
+                </select>
+            </div>
+
+            <!-- === BULANAN === -->
+            <div id="monthlyFields" class="rental-detail-section">
+                <div class="form-group-custom">
+                    <label for="dueDate">Tanggal Jatuh Tempo (Tiap Bulan)</label>
+                    <input 
+                        type="number"
+                        id="dueDate"
+                        class="form-input-new"
+                        min="1"
+                        max="31"
+                        placeholder="Contoh: 5"
+                    >
+                    <small class="form-helper-text">
+                        Tagihan otomatis muncul tiap tanggal ini.
+                    </small>
+                </div>
+            </div>
+
+            <!-- === HARIAN === -->
+            <div id="dailyFields" class="rental-detail-section" style="display: none;">
+                <div class="form-group-custom">
+                    <label for="checkoutDate">Rencana Check-out</label>
+                    <input 
+                        type="date"
+                        id="checkoutDate"
+                        class="form-input-new"
+                    >
+                </div>
+            </div>
+
         </div>
-        <div class="form-group-custom">
-    <label for="rentalType">Tipe Sewa</label>
-    <select id="rentalType" class="form-input" onchange="toggleRentalFields()">
-        <option value="monthly">Bulanan (Anak Kos)</option>
-        <option value="daily">Harian (Tamu)</option>
-    </select>
-</div>
-
-<div id="monthlyFields" class="rental-detail-section">
-    <div class="form-group-custom">
-        <label for="dueDate">Tanggal Jatuh Tempo (Tiap Bulan)</label>
-        <input type="number" id="dueDate" class="form-input" min="1" max="31" placeholder="Contoh: 5">
-        <small>Tagihan otomatis muncul tiap tanggal ini.</small>
-    </div>
-</div>
-
-<div id="dailyFields" class="rental-detail-section" style="display: none;">
-    <div class="form-group-custom">
-        <label for="checkoutDate">Rencana Check-out</label>
-        <input type="date" id="checkoutDate" class="form-input">
-    </div>
-</div>
         <div class="modal-footer">
             <button class="btn-cancel" id="btnCancelTenant">Batal</button>
             <button class="btn-save" id="btnSaveTenant">Simpan Data Penyewa</button>

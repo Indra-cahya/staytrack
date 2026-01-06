@@ -11,7 +11,7 @@ const authMiddleware = require('../middleware/auth');
 router.post('/create', auth, roleCheck('owner'), adminController.createAdmin);
 
 // Get all admins
-router.get('/', auth, roleCheck('owner'), adminController.getAdmins);
+router.get('/list', auth, roleCheck('owner'), adminController.getAdmins);
 
 // Delete admin
 router.delete('/:adminId', auth, roleCheck('owner'), adminController.deleteAdmin);

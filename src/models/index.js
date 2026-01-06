@@ -1,6 +1,5 @@
 const User = require('./User');
 const Room = require('./Room');
-const Bill = require('./Bill');
 const Payment = require('./Payment');
 
 /**
@@ -16,6 +15,5 @@ const Payment = require('./Payment');
 module.exports = {
     User,
     Room,
-    Bill,
     Payment
 };

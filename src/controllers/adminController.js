@@ -19,53 +19,37 @@ class AdminController {
     static async createAdmin(req, res) {
     try {
         const { name, email, password, phone } = req.body;
-        const ownerId = req.userId; // Dari auth middleware
+        const ownerId = req.userId; 
 
-        // Cek jika user sudah ada
+        // 1. Cek duplikat
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(400).json({
-                success: false,
-                message: 'Email sudah terdaftar'
-            });
+            return res.status(400).json({ success: false, message: 'Email sudah terdaftar' });
         }
-        /**
-         * [INSTANTIATION & INHERITANCE]
-         * Baris ini membuat objek baru dari Sub-class 'Admin'.
-         * Objek ini secara otomatis memiliki atribut dari Super-class 'User'.
-         */
-        // Buat admin baru
-        const admin = new Admin({
-            name,
-            email,
-            password,
-            phone,
-            ownerId: req.userId
-        });
 
+        // 2. Buat Admin baru
+        const admin = new Admin({
+            name, email, password, phone,
+            role: 'admin',
+            ownerId: ownerId 
+        });
         await admin.save();
 
-        // [OBJECT INTERACTION]
-        // Interaksi antar-objek: Menambah state 'adminCount' pada objek Owner.
-        // Update admin count di owner
-        await Owner.findOneAndUpdate(
-            { _Id: ownerId },
+        // 3. 🔥 FIX TYPO DI SINI! (Paling penting biar gak Error 500)
+        // Pakai findByIdAndUpdate agar lebih aman daripada findOneAndUpdate
+        await Owner.findByIdAndUpdate(
+            ownerId, 
             { $inc: { adminCount: 1 } }
         );
 
         res.status(201).json({
             success: true,
             message: 'Admin berhasil dibuat',
-            data: {
-                _id: admin._id,
-                name: admin.name,
-                email: admin.email,
-                role: admin.role,
-                createdAt: admin.createdAt
-            }
+            data: { name: admin.name, email: admin.email }
         });
 
     } catch (error) {
+        console.error('🔥 Error Backend:', error.message);
         res.status(500).json({
             success: false,
             message: 'Error membuat admin',

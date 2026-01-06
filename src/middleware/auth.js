@@ -33,8 +33,9 @@ const authMiddleware = async (req, res, next) => {
 
         req.user = user;
         req.userId = user._id;
+        req.userRole = user.role;
 
-        console.log('✅ Auth success. Lanjut ke Controller.');
+        console.log('Auth success. Lanjut ke Controller.');
         next();
 
     } catch (error) {

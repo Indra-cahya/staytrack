@@ -115,7 +115,6 @@ function renderPaymentTable(payments) {
 
     tbody.innerHTML = '';
 
-    // FIX UTAMA: Cek apakah datanya beneran ada
     if (!Array.isArray(payments) || payments.length === 0) {
         tbody.innerHTML = `
             <tr>
@@ -130,35 +129,38 @@ function renderPaymentTable(payments) {
         return;
     }
 
-    // RENDER DATA
     payments.forEach(payment => {
-    const row = document.createElement('tr');
-    
-    const statusStyle = payment.status?.toLowerCase() === 'paid' || payment.status?.toLowerCase() === 'completed'
-        ? 'background: #dcfce7; color: #15803d;' 
-        : 'background: #fef9c3; color: #a16207;';
-    const typeBadge = payment.rentalType === 'daily' 
-    ? '<span style="background: #ecfdf5; color: #065f46; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800;">HARIAN</span>'
-    : '<span style="background: #eff6ff; color: #1e40af; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800;">BULANAN</span>';
+        const row = document.createElement('tr');
+        
+        const statusStyle = payment.status?.toLowerCase() === 'paid' || payment.status?.toLowerCase() === 'completed'
+            ? 'background: #dcfce7; color: #15803d;' 
+            : 'background: #fef9c3; color: #a16207;';
 
-    row.innerHTML = `
-        <td style="padding: 15px; border-bottom: 1px solid #f1f5f9;">${payment.tenantName}</td>
-        <td style="padding: 15px; border-bottom: 1px solid #f1f5f9; color: #4f46e5; font-weight: 600;">${payment.roomNumber}</td>
-        <td style="padding: 15px; border-bottom: 1px solid #f1f5f9; font-weight: 700;">${formatRupiah(payment.amount)}</td>
-        <td style="padding: 15px; border-bottom: 1px solid #f1f5f9;">
-            <span style="text-transform: uppercase; font-weight: 700; font-size: 0.8rem; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; color: #475569;">
-                ${payment.method || '-'} 
-            </span>
-        </td>
-        <td style="padding: 15px; border-bottom: 1px solid #f1f5f9;">
-            <span style="padding: 5px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 800; ${statusStyle}">
-                ${payment.status}
-            </span>
-        </td>
-        <td style="padding: 15px; border-bottom: 1px solid #f1f5f9; color: #64748b; font-size: 0.85rem;">${formatDate(payment.date)}</td>
-    `;
-    tbody.appendChild(row);
-});
+        // Badge Tipe Sewa
+        const typeBadge = payment.rentalType === 'daily' 
+            ? '<span style="background: #ecfdf5; color: #065f46; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800;">HARIAN</span>'
+            : '<span style="background: #eff6ff; color: #1e40af; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800;">BULANAN</span>';
+
+        row.innerHTML = `
+            <td style="padding: 15px; border-bottom: 1px solid #f1f5f9;">
+                <div style="font-weight: 600;">${payment.tenantName}</div>
+                <div style="margin-top: 4px;">${typeBadge}</div> </td>
+            <td style="padding: 15px; border-bottom: 1px solid #f1f5f9; color: #4f46e5; font-weight: 600;">${payment.roomNumber}</td>
+            <td style="padding: 15px; border-bottom: 1px solid #f1f5f9; font-weight: 700;">${formatRupiah(payment.amount)}</td>
+            <td style="padding: 15px; border-bottom: 1px solid #f1f5f9;">
+                <span style="text-transform: uppercase; font-weight: 700; font-size: 0.8rem; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; color: #475569;">
+                    ${payment.method || '-'} 
+                </span>
+            </td>
+            <td style="padding: 15px; border-bottom: 1px solid #f1f5f9;">
+                <span style="padding: 5px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 800; ${statusStyle}">
+                    ${payment.status}
+                </span>
+            </td>
+            <td style="padding: 15px; border-bottom: 1px solid #f1f5f9; color: #64748b; font-size: 0.85rem;">${formatDate(payment.date)}</td>
+        `;
+        tbody.appendChild(row);
+    });
 }
 
 function formatRupiah(angka) {

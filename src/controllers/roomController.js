@@ -1,69 +1,65 @@
 const { Room, User } = require('../models');
+
 /**
- * [ABSTRACTION - RESOURCE MANAGEMENT]
- * RoomController mengabstraksikan operasi manajemen aset fisik (Kamar).
- * Class ini bertindak sebagai pengendali logika untuk memastikan setiap 
- * instance objek Room dikelola sesuai dengan aturan bisnis.
+ * [ABSTRACTION]
+ * Class RoomController mengabstraksi seluruh proses pengelolaan data fisik kamar
+ * ke dalam method-method logis seperti create, get, update, dan delete.
  */
 class RoomController {
-    
-    /**
-     * [INSTANTIATION & VALIDATION]
-     * Metode ini menangani instansiasi objek Room baru. 
-     * Terdapat pengecekan integritas data (Unique Constraint) sebelum 
-     * objek benar-benar disimpan ke dalam persistence layer.
-     */
+
+    // === [CREATE] ===
     static async createRoom(req, res) {
-    try {
-        const { roomNumber, type, priceMonthly, priceDaily, capacity, facilities } = req.body;
-        
-        const existingRoom = await Room.findOne({ roomNumber });
-        if (existingRoom) {
-            return res.status(409).json({ 
-                success: false, 
-                message: `Kamar nomor ${roomNumber} sudah terdaftar.` 
+        try {
+            const { roomNumber, type, priceMonthly, priceDaily, capacity, facilities } = req.body;
+            
+            const existingRoom = await Room.findOne({ roomNumber });
+            if (existingRoom) {
+                return res.status(409).json({ 
+                    success: false, 
+                    message: `Kamar nomor ${roomNumber} sudah terdaftar.` 
+                });
+            }
+            
+            /**
+             * [INSTANTIATION & ENCAPSULATION]
+             * Membuat instance objek baru dari Class 'Room' dan membungkus data atributnya.
+             */
+            const newRoom = new Room({
+                roomNumber,
+                type,
+                price: priceMonthly || 0, 
+                priceMonthly: priceMonthly || 0,
+                priceDaily: priceDaily || 0,
+                capacity,
+                facilities: facilities || [],
+                status: 'available'
+            });
+
+            await newRoom.save();
+
+            res.status(201).json({
+                success: true,
+                message: `Kamar ${roomNumber} (${type}) berhasil ditambahkan.`,
+                data: newRoom
+            });
+
+        } catch (error) {
+            console.error('💥 Error creating room:', error);
+            res.status(500).json({ 
+                success: false,
+                message: 'Server error saat membuat kamar baru.',
+                error: error.message
             });
         }
-        
-        // Pastikan kita kirim 'price' (untuk model lama) dan field baru
-        const newRoom = new Room({
-            roomNumber,
-            type,
-            price: priceMonthly || 0, // Isi 'price' utama dengan harga bulanan agar validasi model lolos
-            priceMonthly: priceMonthly || 0,
-            priceDaily: priceDaily || 0,
-            capacity,
-            facilities: facilities || [],
-            status: 'available'
-        });
-
-        await newRoom.save();
-
-        res.status(201).json({
-            success: true,
-            message: `Kamar ${roomNumber} (${type}) berhasil ditambahkan.`,
-            data: newRoom
-        });
-
-    } catch (error) {
-        console.error('💥 Error creating room:', error);
-        res.status(500).json({ 
-            success: false,
-            message: 'Server error saat membuat kamar baru.',
-            error: error.message
-        });
     }
-}
 
-    /**
-     * [OBJECT ASSOCIATION - POPULATE]
-     * Metode getRooms mendemonstrasikan bagaimana kita menavigasi hubungan 
-     * (Association) antar objek. Dengan 'populate', kita mengambil data 
-     * dari objek 'Tenant' yang terasosiasi dengan objek 'Room' tersebut.
-     */
+    // === [READ] ===
     static async getRooms(req, res) {
         try {
-            // Gunakan populate untuk mendapatkan data penyewa saat kamar terisi
+            /**
+             * [OBJECT RELATIONSHIP / AGGREGATION]
+             * Melakukan 'populate' untuk menghubungkan objek Kamar dengan objek Penyewa (currentTenant).
+             */
             const rooms = await Room.find({})
                 .populate({
                     path: 'currentTenant', 
@@ -89,32 +85,29 @@ class RoomController {
         }
     }
 
-    /**
-     * [ENCAPSULATION - STATE UPDATE]
-     * UpdateRoom mengelola perubahan atribut pada objek. 
-     * Penggunaan 'runValidators: true' memastikan bahwa enkapsulasi aturan 
-     * pada Model tetap dijalankan saat proses pembaruan data.
-     */
-static async updateRoom(req, res) {
-    try {
-        const { id } = req.params;
-        let updateData = req.body;
+    // === [UPDATE] ===
+    static async updateRoom(req, res) {
+        try {
+            const { id } = req.params;
+            let updateData = req.body;
 
-        // Sinkronkan harga lama (price) dengan harga baru agar loadRooms lama gak 0
-        if (updateData.priceMonthly) {
-            updateData.price = updateData.priceMonthly;
-        }
+            /**
+             * [DATA INTEGRITY / ENCAPSULATION]
+             */
+            if (updateData.priceMonthly) {
+                updateData.price = updateData.priceMonthly;
+            }
 
-        const updatedRoom = await Room.findByIdAndUpdate(
-            id,
-            { $set: updateData },
-            { new: true, runValidators: true }
-        );
-            res.json({
-                success: true,
-                message: `Kamar ${updatedRoom.roomNumber} berhasil diperbarui.`,
-                data: updatedRoom
-            });
+            const updatedRoom = await Room.findByIdAndUpdate(
+                id,
+                { $set: updateData },
+                { new: true, runValidators: true }
+            );
+                res.json({
+                    success: true,
+                    message: `Kamar ${updatedRoom.roomNumber} berhasil diperbarui.`,
+                    data: updatedRoom
+                });
 
         } catch (error) {
             console.error('💥 Error updating room:', error);
@@ -126,12 +119,7 @@ static async updateRoom(req, res) {
         }
     }
 
-    /**
-     * [OBJECT LIFECYCLE & BUSINESS CONSTRAINTS]
-     * Sebelum menghapus objek (Destruction), kita melakukan pengecekan State.
-     * Jika Room dalam status 'occupied', objek tidak boleh dihapus. 
-     * Ini adalah implementasi "Business Rule Validation" dalam siklus hidup objek.
-     */
+    // === [DELETE] ===
     static async deleteRoom(req, res) {
         try {
             const { id } = req.params; 
@@ -141,6 +129,10 @@ static async updateRoom(req, res) {
                 return res.status(404).json({ success: false, message: 'Kamar tidak ditemukan.' });
             }
 
+            /**
+             * [STATE VALIDATION & DATA PROTECTION]
+             * Melindungi integritas objek: Kamar dengan state 'occupied' dilarang dihapus.
+             */
             if (room.status === 'occupied') {
                 return res.status(400).json({ 
                     success: false, 

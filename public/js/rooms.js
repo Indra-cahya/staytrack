@@ -74,7 +74,7 @@ async function saveRoom() {
         roomNumber, 
         priceMonthly, 
         priceDaily, 
-        price: priceMonthly, // Untuk bypass validasi backend lama
+        price: priceMonthly, 
         type, 
         capacity, 
         facilities: facilitiesArray

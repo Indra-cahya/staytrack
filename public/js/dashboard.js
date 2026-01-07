@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
 
-        // 2. PANGGIL API REPORTS DENGAN FILTER (Biar angka sinkron)
+        // 2. PANGGIL API REPORTS DENGAN FILTER (suoaya angka sinkron)
         const reportResult = await apiRequest(`/api/admin/reports?startDate=${startOfMonth}&endDate=${endOfMonth}`, 'GET');
 
         // Ambil data kamar & tenant (tetap keseluruhan)

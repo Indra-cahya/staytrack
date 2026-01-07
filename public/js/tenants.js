@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnCancelTenant = document.getElementById('btnCancelTenant');
     const paymentMethodSelect = document.getElementById('paymentMethod');
     const rentalTypeSelect = document.getElementById('rentalType'); 
-    const roomIdSelect = document.getElementById('roomId'); // Dropdown Kamar
+    const roomIdSelect = document.getElementById('roomId'); 
 
     if (btnAddTenant) btnAddTenant.onclick = showAddTenantForm;
     if (btnSaveTenant) btnSaveTenant.onclick = saveTenant;
@@ -33,11 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (roomIdSelect) roomIdSelect.onchange = updateAutoPrice;
 });
 
-// --- FUNGSI AUTO-PRICE (SI TUKANG NYONTEK) ---
+// --- FUNGSI AUTO-PRICE ---
 async function updateAutoPrice() {
     const roomId = document.getElementById('roomId').value;
     const rentalType = document.getElementById('rentalType').value;
-    const amountInput = document.getElementById('initialAmount'); // Pastikan ID ini ada di HTML lo
+    const amountInput = document.getElementById('initialAmount');
 
     if (!roomId || !amountInput) return;
 
@@ -52,7 +52,7 @@ async function updateAutoPrice() {
     }
 }
 
-// --- FUNGSI TAMPILAN (UI) ---
+// FUNGSI TAMPILAN (UI) 
 function toggleRentalFields() {
     const type = document.getElementById('rentalType').value;
     const monthlyFields = document.getElementById('monthlyFields');
@@ -112,10 +112,8 @@ async function saveTenant() {
     const idNumber = document.getElementById('idNumber').value.trim();
     const paymentMethod = document.getElementById('paymentMethod').value;
     
-    // KUNCINYA DI SINI: Ambil rentalType yang terbaru dari dropdown
+    // Ambil rentalType yang terbaru dari dropdown
     const rentalType = document.getElementById('rentalType').value; 
-    
-    // Ambil nominal yang sudah di-auto-fill oleh updateAutoPrice()
     const initialAmount = parseFloat(document.getElementById('initialAmount')?.value || 0);
 
     if (!name || !phone || !idNumber || !paymentMethod) {
@@ -124,10 +122,10 @@ async function saveTenant() {
 
     const payload = { 
         name, phone, idNumber, paymentMethod, 
-        rentalType: rentalType // Pastikan ini terkirim sesuai pilihan (daily/monthly)
+        rentalType: rentalType 
     };
 
-    // Logic Tanggal: Pastiin payload ngikutin rentalType
+    // Logic Tanggal
     if (rentalType === 'monthly') {
         payload.dueDate = document.getElementById('dueDate').value;
     } else {
@@ -149,13 +147,13 @@ async function saveTenant() {
         // 1. SIMPAN PROFIL PENYEWA
         const resTenant = await apiRequest(url, method, payload);
         
-        // 2. SIMPAN PEMBAYARAN (Gunakan rentalType yang sama)
+        // 2. SIMPAN PEMBAYARAN
         if (!currentEditTenantId && initialAmount > 0) {
             await apiRequest('/api/admin/payments/create', 'POST', {
                 tenantName: payload.name,
                 amount: initialAmount,
                 paymentMethod: payload.paymentMethod,
-                rentalType: rentalType, // INI YANG BIKIN MASUK KE LAPORAN HARIAN/BULANAN
+                rentalType: rentalType, 
                 status: 'Completed'
             });
         }
@@ -178,11 +176,10 @@ async function saveTenant() {
     }
 }
 
-// Pastiin pemicunya sensitif pas ganti tipe
 if (rentalTypeSelect) {
     rentalTypeSelect.onchange = () => {
-        toggleRentalFields(); // Ganti tampilan field (dueDate vs checkoutDate)
-        updateAutoPrice();    // Ganti nominal bayar (priceMonthly vs priceDaily)
+        toggleRentalFields(); 
+        updateAutoPrice();    
     };
 }
 async function loadTenants() {

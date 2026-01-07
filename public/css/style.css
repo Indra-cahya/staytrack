@@ -171,7 +171,7 @@ body {
     font-family: 'Plus Jakarta Sans', sans-serif;
     background-color: #f8fafc;
     margin: 0;
-    display: block; /* Hapus flex min-height vh agar tidak berantakan */
+    display: block; 
 }
 
 /* TOP NAVBAR */
@@ -247,17 +247,17 @@ body {
     cursor: pointer;
     font-size: 1.1rem;
     transition: 0.3s;
-    z-index: 3000; /* Tetap di atas saat sidebar terbuka */
+    z-index: 3000; 
 }
 
 /* --- Desktop Only Elements --- */
 .desktop-only {
-    display: block; /* Muncul di desktop */
+    display: block;
 }
 
 /* --- Mobile Only Elements --- */
 .mobile-only {
-    display: none; /* Sembunyi di desktop */
+    display: none; 
 }
 
 /* Penyesuaian Navigasi untuk Mobile */
@@ -268,7 +268,7 @@ body {
         justify-content: center;
     }
 
-    /* Sembunyikan tombol Keluar asli di header mobile agar tidak berantakan */
+    /* Sembunyikan tombol Keluar asli di header mobile */
     .desktop-only {
         display: none !important;
     }
@@ -276,14 +276,14 @@ body {
     /* Tampilkan elemen mobile di layar kecil */
     .mobile-only {
         display: block !important;
-        margin-top: 20px; /* Beri jarak di dalam slide menu */
+        margin-top: 20px; 
         width: 100%;
     }
 
     .nav-menu {
         position: fixed;
         top: 0;
-        right: -100%; /* Sembunyi di kanan */
+        right: -100%; 
         width: 280px;
         height: 100vh;
         background: white;
@@ -399,21 +399,15 @@ body {
     gap: 20px;
     box-shadow: 0 10px 25px -5px rgba(0,0,0,0.02);
     border: 1px solid #f1f5f9;
-    
-    /* Transition agar gerakan halus */
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: default;
 }
 
 .stat-card-modern:hover {
-    /* Mengangkat card sedikit ke atas */
     transform: translateY(-8px);
     
-    /* Membuat bayangan lebih dalam dan lebar agar terlihat seperti melayang */
     box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.1), 
                 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    
-    /* Sedikit mempertegas border saat dihover */
     border-color: rgba(79, 70, 229, 0.2);
 }
 
@@ -431,7 +425,7 @@ body {
     align-items: center;
     justify-content: center;
     font-size: 1.5rem;
-    transition: all 0.3s ease; /* Transition untuk ikon */
+    transition: all 0.3s ease; 
 }
 
 /* Card Colors */
@@ -448,7 +442,7 @@ body {
     gap: 15px;
 }
 
-/* Style untuk elemen list-item yang dibuat oleh JS */
+/* Style untuk elemen list-item  */
 .list-item {
     display: flex;
     justify-content: space-between;
@@ -479,7 +473,7 @@ body {
     font-size: 0.9rem;
 }
 
-/* Tombol Edit & Delete agar konsisten dengan Absensi */
+/* Tombol Edit & Delete konsisten */
 .list-actions button.edit {
     background-color: #eff6ff;
     color: #3b82f6;
@@ -630,16 +624,16 @@ body {
 
 /* Styling Button Tambah Penyewa biar makin kece */
 .btn-primary-new {
-    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%); /* Warna gradasi biru biar modern */
+    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%); 
     color: white;
     border: none;
     padding: 10px 20px;
-    border-radius: 12px; /* Bikin agak bulat biar kerasa premium */
+    border-radius: 12px; 
     font-weight: 700;
     font-family: 'Plus Jakarta Sans', sans-serif;
     display: flex;
     align-items: center;
-    gap: 8px; /* Jarak antara icon plus sama tulisan */
+    gap: 8px; 
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2);
@@ -651,7 +645,7 @@ body {
 
 /* Efek pas kursor nempel (Hover) */
 .btn-primary-new:hover {
-    transform: translateY(-2px); /* Tombol agak naik dikit */
+    transform: translateY(-2px); 
     box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
     filter: brightness(1.1);
 }
@@ -687,7 +681,7 @@ body {
     transition: all 0.3s ease;
 }
 
-/* Efek Focus (Pas diklik) */
+/* Efek Focus */
 .form-grid-custom input:focus, 
 .form-grid-custom select:focus,
 #paymentMethod:focus {
@@ -706,7 +700,7 @@ body {
     letter-spacing: 0.5px;
 }
 
-/* --- Styling Tombol Aksi Form --- */
+/* ---  Tombol Aksi Form --- */
 
 .form-actions-modern {
     display: flex;
@@ -752,7 +746,7 @@ body {
     background: #e2e8f0;
     color: #1e293b;
 }
-/* --- CSS MODAL SYSTEM (REVISED) --- */
+/* --- CSS MODAL SYSTEM  --- */
 .modal-overlay {
     position: fixed;
     top: 0; left: 0;
@@ -764,17 +758,17 @@ body {
     justify-content: center;
     z-index: 2000;
     padding: 20px;
-    box-sizing: border-box; /* WAJIB biar gak off-side */
+    box-sizing: border-box;
 }
 
 .modal-content {
     background: white;
     width: 100%;
-    max-width: 500px; /* Ukuran pas biar gak kegedean */
-    max-height: 90vh; /* Biar gak lewatin tinggi layar */
+    max-width: 500px; 
+    max-height: 90vh; 
     border-radius: 24px;
     display: flex;
-    flex-direction: column; /* Pisahin header, body, footer */
+    flex-direction: column; 
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     overflow: hidden;
@@ -796,22 +790,20 @@ body {
 
 .modal-body {
     padding: 25px;
-    overflow-y: auto; /* Biar bisa di-scroll kalo isi kepanjangan (kayak pas QRIS muncul) */
+    overflow-y: auto; 
     box-sizing: border-box;
 }
 
-/* Biar kolom gak nembus kotak */
 .modal-body *, .modal-body *:before, .modal-body *:after {
     box-sizing: border-box;
 }
-
 .form-grid-custom {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Bikin 2 kolom biar gak makan tempat ke bawah */
+    grid-template-columns: 1fr 1fr; 
     gap: 15px;
 }
 
-/* Kalo layar HP, jadiin 1 kolom aja */
+
 @media (max-width: 480px) {
     .form-grid-custom { grid-template-columns: 1fr; }
 }
@@ -825,21 +817,19 @@ body {
 }
 .form-input-new, 
 .form-select-new, 
-textarea.form-input-new { /* Tambahkan ini */
+textarea.form-input-new { 
     width: 100%;
     padding: 12px 16px;
     margin-top: 8px;
     border: 1.5px solid #e2e8f0;
-    border-radius: 12px; /* Biar sama-sama membulat */
+    border-radius: 12px; 
     font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 0.95rem;
     color: #1e293b;
     background-color: #f8fafc;
     transition: all 0.3s ease;
-    box-sizing: border-box; /* Biar gak luber keluar kotak modal */
+    box-sizing: border-box; 
 }
-
-/* Biar pas diklik efeknya sama juga */
 .form-input-new:focus, 
 .form-select-new:focus, 
 textarea.form-input-new:focus {
@@ -848,7 +838,6 @@ textarea.form-input-new:focus {
     background-color: #ffffff;
     box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
 }
-/* --- Styling buat Laporan Kosong --- */
 .empty-state-container {
     padding: 40px 20px;
     text-align: center;
@@ -872,7 +861,6 @@ textarea.form-input-new:focus {
     font-size: 0.85rem;
 }
 
-/* Badge Status agar lebih rapi di tabel */
 .status-badge {
     padding: 4px 10px;
     border-radius: 20px;
@@ -885,9 +873,7 @@ textarea.form-input-new:focus {
 .status-badge.pending { background: #fef9c3; color: #854d0e; }
 .status-badge.failed { background: #fee2e2; color: #991b1b; }
 
-/* --- Laporan Keuangan Clean Style --- */
-
-/* Tabel Container */
+/* --- Laporan Keuangan--- */
 .report-table-container {
     background: white;
     border-radius: 20px;
@@ -896,7 +882,6 @@ textarea.form-input-new:focus {
     margin-top: 25px;
 }
 
-/* Custom Table Design */
 .modern-table {
     width: 100%;
     border-collapse: separate;
@@ -935,7 +920,6 @@ textarea.form-input-new:focus {
 .modern-table td:first-child { border-left: 1px solid #f1f5f9; border-radius: 12px 0 0 12px; }
 .modern-table td:last-child { border-right: 1px solid #f1f5f9; border-radius: 0 12px 12px 0; }
 
-/* Status Badge */
 .status-badge {
     padding: 6px 12px;
     border-radius: 8px;
@@ -945,7 +929,6 @@ textarea.form-input-new:focus {
 .status-badge.completed { background: #dcfce7; color: #15803d; }
 .status-badge.pending { background: #fef9c3; color: #a16207; }
 
-/* Empty State Styling */
 .empty-reports {
     text-align: center;
     padding: 60px 20px;
@@ -956,7 +939,7 @@ textarea.form-input-new:focus {
     color: #e2e8f0;
     margin-bottom: 15px;
 }
-/* Styling tombol Export Excel & Filter */
+/* tombol Export Excel & Filter */
 .btn-action-custom {
     padding: 11px 20px;
     color: white;
@@ -967,24 +950,20 @@ textarea.form-input-new:focus {
     display: flex;
     align-items: center;
     gap: 8px;
-    transition: all 0.3s ease; /* Biar gerakannya smooth */
+    transition: all 0.3s ease;
     text-decoration: none;
 }
-
-/* Warna spesifik Excel */
 .btn-excel {
     background-color: #10b981;
 }
 
-/* Warna spesifik Filter */
 .btn-filter {
     background-color: #4f46e5;
 }
 
-/* Efek Naik & Bayangan pas kursor nempel */
 .btn-action-custom:hover {
-    transform: translateY(-3px); /* Ini yang bikin "naik" */
-    filter: brightness(0.9); /* Sedikit lebih gelap pas di-hover */
+    transform: translateY(-3px); 
+    filter: brightness(0.9); 
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
@@ -1005,8 +984,6 @@ textarea.form-input-new:focus {
     border: 1.5px dashed #e2e8f0;
     transition: all 0.3s ease;
 }
-
-/* Animasi saat muncul */
 .rental-detail-section:not([style*="display: none"]) {
     animation: fadeSlideIn 0.25s ease;
 }
@@ -1021,11 +998,28 @@ textarea.form-input-new:focus {
         transform: translateY(0);
     }
 }
-
-/* Helper text */
 .form-helper-text {
     display: block;
     margin-top: 6px;
     font-size: 0.8rem;
     color: #64748b;
 }
+        .password-input-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .password-input-container input {
+            padding-right: 45px !important; 
+        }
+        #togglePassword {
+            position: absolute;
+            right: 15px;
+            cursor: pointer;
+            color: #94a3b8;
+            transition: 0.3s;
+            z-index: 10;
+        }
+        #togglePassword:hover {
+            color: #4f46e5;
+        }

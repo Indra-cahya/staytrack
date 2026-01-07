@@ -26,7 +26,6 @@ router.put('/rooms/:id', authMiddleware, roomController.updateRoom);
 router.delete('/rooms/:id', authMiddleware, roomController.deleteRoom); 
 //pembayaran
 router.post('/payments/create', authMiddleware, paymentController.createPayment);
-router.put('/profile/owner',authMiddleware, adminController.updateOwnerProfile);
 // Laporan keuangan
 router.get('/reports', authMiddleware, paymentController.getReports);
 

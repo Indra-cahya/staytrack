@@ -32,13 +32,10 @@ function setupSidebarNavigation() {
 function setupEventListeners() {
     const btnFilter = document.getElementById('btnFilterReport');
 if (btnFilter) {
-    // Ini buat efek warna yang lo mau
     btnFilter.addEventListener('mouseenter', () => btnFilter.style.background = '#4338ca');
     btnFilter.addEventListener('mouseleave', () => btnFilter.style.background = '#4f46e5');
-
-    // INI YANG KURANG: Perintah buat jalanin filter pas diklik!
     btnFilter.addEventListener('click', () => {
-        console.log("Tombol Filter dieksekusi..."); // Buat ngecek di F12
+        console.log("Tombol Filter dieksekusi..."); 
         loadReport(); 
     });
 }
@@ -106,8 +103,6 @@ async function loadReport() {
         renderPaymentTable([]);
     }
 }
-
-// public/js/reports.js
 
 function renderPaymentTable(payments) {
     const tbody = document.getElementById('paymentTableBody');
@@ -181,7 +176,7 @@ function formatDate(dateString) {
     });
 }
 
-// Fungsi tambah pembayaran manual (jika kamu ingin fitur ini di laporan)
+// Fungsi tambah pembayaran manual 
 async function recordPayment() {
     const tenantName = document.getElementById('tenantName').value.trim();
     const amount = parseFloat(document.getElementById('amount').value);
@@ -207,7 +202,7 @@ async function recordPayment() {
             tenantName: tenantName, 
             amount: amount,
             paymentMethod: methodSelect.value,
-            rentalType: type // <--- INI BIAR KARTU DI LAPORAN BERUBAH
+            rentalType: type 
         });
 
         await Swal.fire({
@@ -235,7 +230,7 @@ if (btnExport) {
 
 // Fungsi Utama Export
 function exportToExcel() {
-    const table = document.querySelector("table"); // Ambil tabel laporan
+    const table = document.querySelector("table"); 
     
     // 1. Convert tabel HTML ke format Worksheet
     const wb = XLSX.utils.table_to_book(table, { sheet: "Laporan Keuangan" });

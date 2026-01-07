@@ -1,12 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-/**
- * [ABSTRACTION]
- * userSchema merupakan representasi abstrak dari entitas Pengguna. 
- * Kita melakukan abstraksi dengan memodelkan atribut-atribut esensial 
- * tanpa harus mengekspos kompleksitas penyimpanan data di tingkat database.
- */
+
 const userSchema = new mongoose.Schema({
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
@@ -23,12 +18,6 @@ const userSchema = new mongoose.Schema({
 
 });
 
-/**
- * [ENCAPSULATION]
- * Penggunaan Middleware 'pre-save' ini adalah bentuk enkapsulasi logika bisnis.
- * Mekanisme hashing password disembunyikan di dalam Model sehingga objek lain 
- * tidak perlu mengetahui detail implementasi keamanan data (Information Hiding).
- */
 // Middleware Hashing Password
 userSchema.pre('save', async function(next) {
     if (!this.isModified('password')) return next();
@@ -41,12 +30,7 @@ userSchema.pre('save', async function(next) {
     }
 });
 
-/**
- * [POLYMORPHISM & METHOD DEFINITION]
- * Method 'comparePassword' memberikan perilaku seragam bagi semua instance User.
- * Ini memungkinkan objek untuk merespons input yang berbeda melalui interface 
- * atau kontrak metode yang sama.
- */
+
 // Method Compare Password 
 userSchema.methods.comparePassword = async function(candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password);
@@ -54,25 +38,13 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
 
 const User = mongoose.model('User', userSchema);
 
-/**
- * [INHERITANCE - DISCRIMINATOR]
- * Penggunaan Discriminator adalah implementasi konkret dari konsep Pewarisan.
- * Model 'Owner' dan 'Admin' bertindak sebagai Sub-class yang mewarisi (inherit) 
- * seluruh properti dan metode dari Super-class 'User'.
- */
+
 const Owner = User.discriminator('owner', new mongoose.Schema({
     adminCount: { type: Number, default: 0 },
     roomCount: { type: Number, default: 0 },
     totalRevenue: { type: Number, default: 0 },
-    
-    //URL Gambar QRIS Statis
-    qrisImageUrl: { 
-        type: String, 
-        default: null
-    },
 }));
 
-// Sub-class Admin: Memiliki atribut spesifik 'ownerId' namun tetap memegang identitas 'User'.
 const Admin = User.discriminator('admin', new mongoose.Schema({
     
     ownerId: { 

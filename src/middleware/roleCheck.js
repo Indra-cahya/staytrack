@@ -1,7 +1,15 @@
-// src/middleware/roleCheck.js
+/**
+ * [ABSTRACTION & POLYMORPHISM]
+ * Fungsi ini bertindak sebagai 'Guard' yang fleksibel. 
+ * Bisa menerima satu atau banyak role sekaligus (Variadic Function).
+ */
 const roleCheck = (...allowedRoles) => {
     return (req, res, next) => {
-        const userRole = req.userRole; // dari authMiddleware
+        /**
+         * [STATE ACCESS]
+         * Mengakses atribut 'userRole' yang sudah di-set oleh objek middleware sebelumnya.
+         */
+        const userRole = req.userRole; 
 
         if (!userRole) {
             return res.status(401).json({
@@ -10,6 +18,11 @@ const roleCheck = (...allowedRoles) => {
             });
         }
 
+        /**
+         * [ENCAPSULATION / POLICY ENFORCEMENT]
+         * Logika perlindungan data: Memastikan objek pengirim (User) 
+         * memiliki 'Capability' atau izin yang sesuai.
+         */
         if (!allowedRoles.includes(userRole)) {
             return res.status(403).json({
                 success: false,
@@ -17,6 +30,9 @@ const roleCheck = (...allowedRoles) => {
             });
         }
 
+        /**
+         * [DELEGATION]
+         */
         next();
     };
 };

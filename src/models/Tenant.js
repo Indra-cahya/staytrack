@@ -1,11 +1,5 @@
 const mongoose = require('mongoose');
 
-/**
- * [ABSTRACTION]
- * tenantSchema mendefinisikan abstraksi dari entitas penyewa (Tenant). 
- * Di sini kita hanya mengambil atribut yang relevan untuk kebutuhan 
- * manajemen operasional, seperti identitas dan referensi kamar.
- */
 const tenantSchema = new mongoose.Schema({
     name: { type: String, required: true, trim: true },
     phone: { type: String, required: true, trim: true },
@@ -43,7 +37,7 @@ const tenantSchema = new mongoose.Schema({
     // Field untuk Bulanan
     dueDate: { type: String }, 
     
-    // Field untuk Harian (Sudah ada di kode lo, tinggal pastiin kepake)
+    // Field untuk Harian
     checkoutDate: { type: Date }
 
 }, { timestamps: true });

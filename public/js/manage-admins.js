@@ -18,14 +18,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Tutup Modal
     btnCancel.onclick = () => {
         modal.style.display = 'none';
-        clearForm(); // Bersihin inputan biar gak numpuk
+        clearForm(); 
     };
 
     // Simpan Admin Baru
     btnSave.onclick = createAdmin;
 });
 
-// === [READ] Fungsi nampilin daftar admin ===
+//  [READ] Fungsi nampilin daftar admin 
 async function loadAdmins() {
     try {
         const res = await apiRequest('/api/admin/list');
@@ -63,7 +63,7 @@ async function loadAdmins() {
     }
 }
 
-// === [CREATE] Fungsi tambah admin baru ===
+//[CREATE] Fungsi tambah admin baru 
 async function createAdmin() {
     const name = document.getElementById('adminName').value;
     const email = document.getElementById('adminEmail').value;
@@ -78,7 +78,7 @@ async function createAdmin() {
         const res = await apiRequest('/api/admin/create', 'POST', { name, email, password, phone });
 
         if (res.success) {
-            // [FIX] Tutup modal dulu biar notif sukses keliatan jelas
+            // Tutup modal dulu biar notif sukses keliatan jelas
             document.getElementById('modalAdmin').style.display = 'none';
             clearForm();
 
@@ -89,7 +89,7 @@ async function createAdmin() {
                 confirmButtonColor: '#4f46e5',
                 timer: 2000
             }).then(() => {
-                location.reload(); // Refresh biar muncul di tabel
+                location.reload(); 
             });
         }
     } catch (error) {
@@ -97,7 +97,7 @@ async function createAdmin() {
     }
 }
 
-// === [RESET PASSWORD] Fungsi reset password admin ===
+// [RESET PASSWORD] Fungsi reset password admin 
 window.confirmResetPassword = async (adminId, name) => {
     const { value: newPassword } = await Swal.fire({
         title: `Reset Password ${name}`,
@@ -127,7 +127,7 @@ window.confirmResetPassword = async (adminId, name) => {
     }
 };
 
-// === [DELETE] Fungsi hapus admin ===
+// [DELETE] Fungsi hapus admin 
 window.confirmDeleteAdmin = async (adminId, name) => {
     const result = await Swal.fire({
         title: 'Yakin mau hapus?',
@@ -142,7 +142,6 @@ window.confirmDeleteAdmin = async (adminId, name) => {
 
     if (result.isConfirmed) {
         try {
-            // Sesuai route di backend lo: router.delete('/:adminId', ...)
             const res = await apiRequest(`/api/admin/${adminId}`, 'DELETE');
             
             if (res.success) {
@@ -153,7 +152,7 @@ window.confirmDeleteAdmin = async (adminId, name) => {
                     timer: 1500,
                     showConfirmButton: false
                 }).then(() => {
-                    loadAdmins(); // Reload tabel tanpa refresh halaman
+                    loadAdmins(); 
                 });
             }
         } catch (error) {

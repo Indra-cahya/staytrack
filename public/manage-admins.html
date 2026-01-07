@@ -63,23 +63,31 @@
                 </div>
                 
                 <div class="modal-body">
-                    <div class="form-row-pair">
+                    <div class="form-grid-custom">
                         <div class="form-group-custom">
-                            <label>Nama Lengkap</label>
-                            <input type="text" id="adminName" placeholder="Contoh: Admin Siti" required>
+                            <label for="adminName">Nama Lengkap</label>
+                            <input type="text" id="adminName" class="form-input-new" placeholder="Contoh: Admin Siti" required>
                         </div>
                         <div class="form-group-custom">
-                            <label>Nomor HP</label>
-                            <input type="text" id="adminPhone" placeholder="628..." required>
+                            <label for="adminPhone">Nomor HP</label>
+                            <input type="text" id="adminPhone" class="form-input-new" placeholder="628..." required>
                         </div>
                     </div>
+
                     <div class="form-group-custom" style="margin-top: 15px;">
-                        <label>Email Login</label>
-                        <input type="email" id="adminEmail" placeholder="admin@staytrack.com" required>
+                        <label for="adminEmail">Email Login</label>
+                        <input type="email" id="adminEmail" class="form-input-new" placeholder="admin@staytrack.com" required>
                     </div>
+
                     <div class="form-group-custom" style="margin-top: 15px;">
-                        <label>Password Awal</label>
-                        <input type="password" id="adminPassword" placeholder="Min. 6 Karakter" required>
+                        <label for="adminPassword">Password Awal</label>
+                        <div class="password-input-container">
+                            <input type="password" id="adminPassword" class="form-input-new" placeholder="Min. 6 Karakter" required>
+                            <i class="fas fa-eye" id="togglePassword"></i>
+                        </div>
+                        <small class="form-help-text" style="display: flex; align-items: center; gap: 5px; margin-top: 8px; color: #64748b; font-size: 0.75rem;">
+                            <i class="fas fa-shield-halved" style="color: #4f46e5;"></i> Admin dapat mengubah password ini setelah login.
+                        </small>
                     </div>
                 </div>
 
@@ -90,20 +98,20 @@
             </div>
         </div>
 
-        <div class="table-container-modern shadow-sm">
-            <div class="table-header">
-                <h3 style="font-weight: 800; color: #1e293b;">Daftar Staf Aktif</h3>
-                <div class="table-info-badge" id="adminCount">0 admin</div>
+        <div class="report-table-container shadow-sm" style="background: white; border-radius: 20px; padding: 25px; border: 1px solid #f1f5f9;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="font-weight: 800; color: #1e293b; margin: 0;">Daftar Staf Aktif</h3>
+                <span id="adminCount" style="background: #eff6ff; color: #4f46e5; padding: 5px 15px; border-radius: 20px; font-weight: 700; font-size: 0.85rem;">0 admin</span>
             </div>
             
-            <div class="report-table-container">
+            <div class="table-responsive">
                 <table class="modern-table">
                     <thead>
                         <tr>
                             <th>NAMA ADMIN</th>
                             <th>EMAIL</th>
                             <th>NO. HP</th>
-                            <th>AKSI</th>
+                            <th style="text-align: center;">AKSI</th>
                         </tr>
                     </thead>
                     <tbody id="adminTableBody">
@@ -115,20 +123,36 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const currentPage = window.location.pathname.split("/").pop();
+            // 1. Logika Navbar Aktif Otomatis
+            const currentPage = window.location.pathname.split("/").pop() || "dashboard.html";
             const navLinks = document.querySelectorAll('.nav-menu li a');
             navLinks.forEach(link => {
-                if (currentPage === link.getAttribute('href')) {
+                if (link.getAttribute('href') === currentPage) {
                     link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
                 }
             });
 
+            // 2. Mobile Menu Toggle
             const menuBtn = document.getElementById('mobileMenuBtn');
             const navMenu = document.getElementById('navMenu');
             if (menuBtn && navMenu) {
                 menuBtn.addEventListener('click', () => {
                     navMenu.classList.toggle('active');
                     menuBtn.querySelector('i').className = navMenu.classList.contains('active') ? 'fas fa-xmark' : 'fas fa-bars';
+                });
+            }
+
+            // 3. Toggle Show/Hide Password (IKON DI KANAN)
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('adminPassword');
+            if (togglePassword && passwordInput) {
+                togglePassword.addEventListener('click', function() {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    this.classList.toggle('fa-eye');
+                    this.classList.toggle('fa-eye-slash');
                 });
             }
         });

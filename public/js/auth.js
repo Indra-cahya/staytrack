@@ -17,7 +17,7 @@ export function checkAuth() {
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
     
-    // --- 1. BAGIAN LOGIN ---
+    //  1. BAGIAN LOGIN 
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // --- 2. CEK AUTH & ROLE (UNTUK HALAMAN NON-LOGIN) ---
+    // 2. CEK AUTH & ROLE 
     if (!window.location.pathname.endsWith('index.html')) {
         checkAuth();
         
@@ -66,8 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function setupActiveMenu() {
     const currentPath = window.location.pathname;
-    const menuItems = document.querySelectorAll('.nav-menu a'); // Sesuaikan selector dengan HTML lo
-
+    const menuItems = document.querySelectorAll('.nav-menu a'); 
     menuItems.forEach(item => {
         if (currentPath.includes(item.getAttribute('href'))) {
             item.classList.add('active');

@@ -176,7 +176,7 @@ class AuthController {
                     message: 'Invalid Username or Password'
                 });
             }
-
+            const accessProfile = user.getAccessProfile();
             const token = jwt.sign(
                 { userId: user._id, role: user.role },
                 process.env.JWT_SECRET,
@@ -191,6 +191,7 @@ class AuthController {
                     name: user.name,
                     email: user.email,
                     role: user.role,
+                    access: accessProfile,
                     token
                 }
             });
